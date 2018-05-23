@@ -1,4 +1,4 @@
-pragma solidity 0.4.23;
+pragma solidity 0.4.24;
 
 contract Administration {
 
@@ -41,6 +41,7 @@ contract Administration {
         require(_newAdmin != admin);
         admin = _newAdmin;
         emit AdminSet(_newAdmin, true);
+        return true;
     }
 
     function transferOwnership(
@@ -52,7 +53,8 @@ contract Administration {
     {
         require(_newOwner != owner);
         owner = _newOwner;
-        OwnershipTransferred(msg.sender, _newOwner, true);
+        emit OwnershipTransferred(msg.sender, _newOwner, true);
+        return true;
     }
 
     function owner() external view returns (address) {

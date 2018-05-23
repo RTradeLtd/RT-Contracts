@@ -1,4 +1,4 @@
-pragma solidity 0.4.23;
+pragma solidity 0.4.24;
 
 interface OracleSubscriberInterface {
     function updateRtcPrice(uint256 _rtcUSD) external returns (bool);

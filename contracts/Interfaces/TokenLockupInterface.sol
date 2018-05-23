@@ -1,4 +1,4 @@
-pragma solidity 0.4.23;
+pragma solidity 0.4.24;
 
 interface TokenLockupInterface {
 	function setRtI(address _rtcAddress) external returns (bool);
