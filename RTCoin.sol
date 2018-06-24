@@ -9,6 +9,7 @@ pragma solidity 0.4.24;
 
 import "./Modules/Administration.sol";
 import "./Math/SafeMath.sol";
+import "./Interfaces/ERC20Interface.sol";
 
 contract RTCoin is Administration {
 
@@ -37,7 +38,8 @@ contract RTCoin is Administration {
     event Approval(address indexed _owner, address indexed _spender, uint256 _amount);
     event TransfersFrozen(bool indexed _transfersFrozen);
     event TransfersThawed(bool indexed _transfersThawed);
-
+    event ForeignTokenTransfer(address indexed _sender, address indexed _recipient, uint256 _amount);
+    event EthTransferOut(address indexed _recipient, uint256 _amount);
     modifier transfersNotFrozen() {
         require(!transfersFrozen);
         _;
@@ -55,6 +57,34 @@ contract RTCoin is Administration {
         // 88il in wei
         totalSupply = 88888888000000000000000000;
         balances[msg.sender] = totalSupply;
+    }
+
+    function transferForeignToken(
+        address _tokenAddress,
+        address _recipient,
+        uint256 _amount)
+        public
+        onlyAdmin
+        returns (bool)
+    {
+        // prevent sending of RTC token
+        require(_tokenAddress != address(this));
+        ERC20Interface eI = ERC20Interface(_tokenAddress);
+        require(eI.balanceOf(address(this)) >=  _amount);
+        require(eI.transfer(_recipient, _amount));
+        emit ForeignTokenTransfer(msg.sender, _recipient, _amount);
+    }
+
+    //This will only ever have to be called in cases where a contract suicides and ether is forcably sent
+    // or if someone sends ehter to the address the contract will reside at before it is deployed
+    function transferOutEth()
+        public
+        onlyAdmin
+        returns (bool)
+    {
+        uint256 balance = address(this).balance;
+        msg.sender.transfer(address(this).balance);
+        emit EthTransferOut(msg.sender, balance);
     }
 
     function freezeTransfers()
