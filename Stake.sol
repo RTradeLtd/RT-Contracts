@@ -21,6 +21,8 @@ contract Stake is Administration {
         uint256 blockUnlocked;
         uint256 releaseDate;
         uint256 coinsMinted;
+        uint256 rewardPerBlock;
+        uint256 lastBlockWithdrawn;
     }
 
     mapping (address => mapping (uint256 => bytes32)) public stakeNumToIDMap;
@@ -34,12 +36,12 @@ contract Stake is Administration {
         _;
     }
     
-    modifier validRelease(uint256 _stakeNum, address _staker) {
+    modifier validInitialStakeRelease(uint256 _stakeNum, address _staker) {
         require(now >= stakes[_staker][_stakeNum].releaseDate && block.number >= stakes[_staker][_stakeNum].blockUnlocked);
         _;
     }
-    constructor () {}
 
+    constructor () {}
 
     function depositStake(uint256 _numRTC)
         external
@@ -50,14 +52,17 @@ contract Stake is Administration {
         (uint256 blockLocked, 
         uint256 blockReleased, 
         uint256 releaseDate, 
-        uint256 totalCoinsMinted) = calculateStake(_numRTC);
+        uint256 totalCoinsMinted,
+        uint256 rewardPerBlock) = calculateStake(_numRTC);
         StakeStruct memory ss = StakeStruct({
             stakeID: keccak256(blockLocked, blockReleased, releaseDate, totalCoinsMinted, stakeCount),
             stakeAmount: _numRTC,
             blockLocked: blockLocked,
             blockUnlocked: blockReleased,
             releaseDate: releaseDate,
-            coinsMinted: totalCoinsMinted
+            coinsMinted: totalCoinsMinted,
+            rewardPerBlock: rewardPerBlock,
+            lastBlockWithdrawn: block.number
         });
         stakes[msg.sender][stakeCount] = ss;
         internalRTCBalances[msg.sender] = internalRTCBalances[msg.sender].add(_numRTC);
@@ -76,12 +81,19 @@ contract Stake is Administration {
             uint256 blockLocked, 
             uint256 blockReleased, 
             uint256 releaseDate, 
-            uint256 totalCoinsMinted
+            uint256 totalCoinsMinted,
+            uint256 rewardPerBlock
         ) 
     {
         blockLocked = block.number;
         blockReleased = blockLocked.mul(BLOCKHOLDPERIOD);
         releaseDate = now.add(BLOCKHOLDPERIOD.mul(1 seconds));
+        totalCoinsMinted = _numRTC.mul(MULTIPLIER);
+        totalCoinsMinted = totalCoinsMinted.div(1 ether);
+        rewardPerBlock = totalCoinsMinted.div(BLOCKHOLDPERIOD);
+    }
+
+    function calculateTotalCoinsMinted(uint256 _numRTC) internal view returns (uint256 totalCoinsMinted) {
         totalCoinsMinted = _numRTC.mul(MULTIPLIER);
         totalCoinsMinted = totalCoinsMinted.div(1 ether);
     }

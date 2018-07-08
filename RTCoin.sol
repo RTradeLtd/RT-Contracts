@@ -15,7 +15,8 @@ contract RTCoin is Administration {
 
     using SafeMath for uint256;
 
-    string public name;
+    address public  stakeContract;
+    string  public  name;
     string  public  symbol;
     uint256 public  totalSupply;
     uint256 public  initialSupply = 61600000000000000000000000;
@@ -42,6 +43,11 @@ contract RTCoin is Administration {
         _;
     }
 
+    modifier onlyStakeContract() {
+        require(msg.sender == stakeContract);
+        _;
+    }
+
     constructor() public {
         name = "RTCoin";
         symbol = "RTC";
@@ -50,6 +56,16 @@ contract RTCoin is Administration {
         totalSupply = initialSupply;
         balances[msg.sender] = totalSupply;
         emit Transfer(address(0), msg.sender, totalSupply);
+    }
+
+    function setStakeContract(address _contractAddress)
+        external
+        onlyAdmin
+        returns (bool)
+    {
+        stakeContract = _contractAddress;
+        // event place holder
+        return true;
     }
 
     function transferForeignToken(
@@ -63,7 +79,7 @@ contract RTCoin is Administration {
         // prevent sending of RTC token
         require(_tokenAddress != address(this));
         ERC20Interface eI = ERC20Interface(_tokenAddress);
-        require(eI.balanceOf(address(this)) >=  _amount);
+        require(eI.balanceOf(address(this)) >= _amount);
         require(eI.transfer(_recipient, _amount));
         emit ForeignTokenTransfer(msg.sender, _recipient, _amount);
     }
@@ -74,12 +90,13 @@ contract RTCoin is Administration {
         address _recipient,
         uint256 _amount)
         public
-        onlyAdmin
+        onlyStakeContract
         returns (bool)
     {
         balances[_recipient] = balances[_recipient].add(_amount);
         totalSupply = totalSupply.add(_amount);
         emit Transfer(address(0), _recipient, _amount);
+        // total supply increase place holder
         return true;
     }
 
