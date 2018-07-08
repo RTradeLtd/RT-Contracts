@@ -7,6 +7,7 @@ contract Stake {
     using SafeMath for uint256;
 
     address constant public TOKENCONTRACT = address(0);
+    // NOTE ON MULTIPLIER: this is right now set to 1% this may however change before token is released
     uint256 constant public MULTIPLIER = 10000000000000000;
     // we use an average blocks per year of 2,103,840 assuming an average block time of 15 seconds.
     // the only thing effected by this, is when they can withdraw their initial stake. 
