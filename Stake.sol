@@ -9,8 +9,14 @@ contract Stake is Administration {
 
     RTCoinInterface constant public RTI = RTCoinInterface(address(0));
     uint256 constant public MULTIPLIER = 10000000000000000;
+    // we use an average blocks per year of 2,103,840 assuming an average block time of 15 seconds.
+    // the only thing effected by this, is when they can withdraw their initial stake. 
+    // To do so, 2103840 blocks must've passed. The current block time must also be equal,or greater to
+    // the "release date" which is calculated based off the time the initial stake is deposited added to
+    // the number of seconds per block (15) multiplied by the block hold period of 2103840 blocks.
+    // all other stake reward creditation and withdrawal is ultimately controlled by real-time block generation speeds.
     uint256 constant public BLOCKHOLDPERIOD = 2103840;
-    uint256 constant public BLOCKSEC = 13;
+    uint256 constant public BLOCKSEC = 15;
 
     enum StakeStateEnum { nil, staking, staked }
 
