@@ -11,9 +11,15 @@ import "./Modules/Administration.sol";
 import "./Math/SafeMath.sol";
 import "./Interfaces/ERC20Interface.sol";
 
+interface StakeInterface {
+    function activeStakes() external view returns (uint256);
+}
+
 contract RTCoin is Administration {
 
     using SafeMath for uint256;
+
+    StakeInterface public stake;
 
     address public  stakeContract;
     string  public  name;
@@ -63,7 +69,12 @@ contract RTCoin is Administration {
         onlyAdmin
         returns (bool)
     {
+        // this prevents us from changing contracts while there are active stakes going on
+        if (stakeContract != address(0)) {
+            require(stake.activeStakes() == 0);
+        }
         stakeContract = _contractAddress;
+        stake = StakeInterface(_contractAddress);
         // event place holder
         return true;
     }
