@@ -22,6 +22,7 @@ contract RTCoin is Administration {
     StakeInterface public stake;
 
     address public  stakeContract;
+    address public  mergedMinerValidator;
     string  public  name;
     string  public  symbol;
     uint256 public  totalSupply;
@@ -49,8 +50,8 @@ contract RTCoin is Administration {
         _;
     }
 
-    modifier onlyStakeContract() {
-        require(msg.sender == stakeContract);
+    modifier onlyMinters() {
+        require(msg.sender == stakeContract || msg.sender == mergedMinerValidator);
         _;
     }
 
@@ -64,11 +65,12 @@ contract RTCoin is Administration {
         emit Transfer(address(0), msg.sender, totalSupply);
     }
 
-    function setStakeContract(address _contractAddress)
-        external
-        onlyAdmin
-        returns (bool)
-    {
+    function setMergedMinerValidator(address _mergedMinerValidator) external onlyAdmin returns (bool) {
+        mergedMinerValidator = _mergedMinerValidator;
+        return true;
+    }
+
+    function setStakeContract(address _contractAddress) external onlyAdmin returns (bool) {
         // this prevents us from changing contracts while there are active stakes going on
         if (stakeContract != address(0)) {
             require(stake.activeStakes() == 0);
@@ -101,7 +103,7 @@ contract RTCoin is Administration {
         address _recipient,
         uint256 _amount)
         public
-        onlyStakeContract
+        onlyMinters
         returns (bool)
     {
         balances[_recipient] = balances[_recipient].add(_amount);

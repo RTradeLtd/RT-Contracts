@@ -6,18 +6,21 @@ import "./Math/SafeMath.sol";
 contract Stake {
     using SafeMath for uint256;
 
-    address constant public TOKENCONTRACT = address(0);
+    // we mark as constant private to reduce gas costs
+    address constant private TOKENCONTRACT = address(0);
+    // Minimum stake of 1RTC
+    uint256 constant private MINSTAKE = 1000000000000000000;
     // NOTE ON MULTIPLIER: this is right now set to 1% this may however change before token is released
-    uint256 constant public MULTIPLIER = 10000000000000000;
+    uint256 constant private MULTIPLIER = 10000000000000000;
     // we use an average blocks per year of 2,103,840 assuming an average block time of 15 seconds.
     // the only thing effected by this, is when they can withdraw their initial stake. 
     // To do so, 2103840 blocks must've passed. The current block time must also be equal,or greater to
     // the "release date" which is calculated based off the time the initial stake is deposited added to
     // the number of seconds per block (15) multiplied by the block hold period of 2103840 blocks.
     // all other stake reward creditation and withdrawal is ultimately controlled by real-time block generation speeds.
-    uint256 constant public BLOCKHOLDPERIOD = 2103840;
-    uint256 constant public BLOCKSEC = 15;
-    RTCoinInterface constant public RTI = RTCoinInterface(TOKENCONTRACT);
+    uint256 constant private BLOCKHOLDPERIOD = 2103840;
+    uint256 constant private BLOCKSEC = 15;
+    RTCoinInterface constant private RTI = RTCoinInterface(TOKENCONTRACT);
 
     uint256 public activeStakes;
     address public admin;
@@ -26,7 +29,6 @@ contract Stake {
     enum StakeStateEnum { nil, staking, staked }
 
     struct StakeStruct {
-        bytes32 stakeID;
         uint256 initialStake;
         uint256 blockLocked;
         uint256 blockUnlocked;
@@ -44,8 +46,6 @@ contract Stake {
     event StakeRewardWithdrawn(address indexed _staker, uint256 indexed _stakeNum, uint256 _reward);
     event InitialStakeWithdrawn(address indexed _staker, uint256 indexed _stakeNumber, uint256 _amount);
 
-    mapping (address => mapping (uint256 => bytes32)) public stakeNumToIDMap;
-    mapping (address => mapping (bytes32 => uint256)) public stakeIDToNumMap;
     mapping (address => mapping (uint256 => StakeStruct)) public stakes;
     mapping (address => uint256) public numberOfStakes;
     mapping (address => uint256) public internalRTCBalances;
@@ -57,7 +57,7 @@ contract Stake {
         _;
     }
 
-    modifier validRewardWithdrawal(uint256 _stakeNumber) {
+    modifier validMint(uint256 _stakeNumber) {
         // allow people to withdraw their rewards even if the staking period is over
         require(stakes[msg.sender][_stakeNumber].state == StakeStateEnum.staking || stakes[msg.sender][_stakeNumber].state == StakeStateEnum.staked);
         require(stakes[msg.sender][_stakeNumber].coinsMinted < stakes[msg.sender][_stakeNumber].totalCoinsToMint);
@@ -67,9 +67,10 @@ contract Stake {
         _;
     }
 
-    modifier stakingEnabled() {
+    modifier stakingEnabled(uint256 _numRTC) {
         require(canMint());
         require(newStakesAllowed);
+        require(_numRTC >= MINSTAKE);
         _;
     }
 
@@ -78,14 +79,13 @@ contract Stake {
         _;
     }
 
-    constructor() public {
+    constructor() {
         // prevent deployment if the token contract hasn't been set yet
         if (TOKENCONTRACT == address(0)) {
             revert();
         }
         admin = msg.sender;
     }
-
 
     function disableNewStakes() external onlyAdmin returns (bool) {
         newStakesAllowed = false;
@@ -101,32 +101,27 @@ contract Stake {
         return true;
     }
 
-    function withdrawReward(uint256 _stakeNumber) external validRewardWithdrawal(_stakeNumber) returns (bool) {
-        uint256 currentBlock = calculateCurrentBlock(_stakeNumber);
-        uint256 lastBlockWithdrawn = stakes[msg.sender][_stakeNumber].lastBlockWithdrawn;
-        uint256 blocksToReward = currentBlock.sub(lastBlockWithdrawn);
-        uint256 reward = blocksToReward.mul(stakes[msg.sender][_stakeNumber].rewardPerBlock);
-        reward = reward.div(1 ether);
-        require(stakes[msg.sender][_stakeNumber].coinsMinted.add(reward) <= stakes[msg.sender][_stakeNumber].totalCoinsToMint);
-        stakes[msg.sender][_stakeNumber].coinsMinted = stakes[msg.sender][_stakeNumber].coinsMinted.add(reward);
+    function mint(uint256 _stakeNumber) public validMint(_stakeNumber) returns (bool) {
+        uint256 mintAmount = calculateMint(_stakeNumber);
+        require(stakes[msg.sender][_stakeNumber].coinsMinted.add(mintAmount) <= stakes[msg.sender][_stakeNumber].totalCoinsToMint);
+        stakes[msg.sender][_stakeNumber].coinsMinted = stakes[msg.sender][_stakeNumber].coinsMinted.add(mintAmount);
         stakes[msg.sender][_stakeNumber].lastBlockWithdrawn = block.number;
-        emit StakeRewardWithdrawn(msg.sender, _stakeNumber, reward);
-        require(RTI.mint(msg.sender, reward));
+        emit StakeRewardWithdrawn(msg.sender, _stakeNumber, mintAmount);
+        require(RTI.mint(msg.sender, mintAmount));
         return true;
     }
 
-
-    function withdrawInitialStake(uint256 _stakeNumber) external validInitialStakeRelease(_stakeNumber) returns (bool) {
+    function withdrawInitialStake(uint256 _stakeNumber) public validInitialStakeRelease(_stakeNumber) returns (bool) {
         uint256 initialStake = stakes[msg.sender][_stakeNumber].initialStake;
         stakes[msg.sender][_stakeNumber].state = StakeStateEnum.staked;
         activeStakes = activeStakes.sub(1);
+        internalRTCBalances[msg.sender] = internalRTCBalances[msg.sender].sub(initialStake);
         emit InitialStakeWithdrawn(msg.sender, _stakeNumber, initialStake);
         require(RTI.transfer(msg.sender, initialStake));
         return true;
     }
 
-
-    function depositStake(uint256 _numRTC) external stakingEnabled returns (bool) {
+    function depositStake(uint256 _numRTC) public stakingEnabled(_numRTC) returns (bool) {
         uint256 stakeCount = getStakeCount(msg.sender);
 
         (uint256 blockLocked, 
@@ -136,7 +131,6 @@ contract Stake {
         uint256 rewardPerBlock) = calculateStake(_numRTC);
 
         StakeStruct memory ss = StakeStruct({
-            stakeID: keccak256(blockLocked, blockReleased, releaseDate, totalCoinsMinted, stakeCount),
             initialStake: _numRTC,
             blockLocked: blockLocked,
             blockUnlocked: blockReleased,
@@ -144,13 +138,11 @@ contract Stake {
             totalCoinsToMint: totalCoinsMinted,
             coinsMinted: 0,
             rewardPerBlock: rewardPerBlock,
-            lastBlockWithdrawn: block.number,
+            lastBlockWithdrawn: blockLocked,
             state: StakeStateEnum.staking
         });
 
         stakes[msg.sender][stakeCount] = ss;
-        stakeNumToIDMap[msg.sender][stakeCount] = keccak256(blockLocked, blockReleased, releaseDate, totalCoinsMinted, stakeCount);
-        stakeIDToNumMap[msg.sender][keccak256(blockLocked, blockReleased, releaseDate, totalCoinsMinted, stakeCount)] = stakeCount;
         numberOfStakes[msg.sender] = numberOfStakes[msg.sender].add(1);
         internalRTCBalances[msg.sender] = internalRTCBalances[msg.sender].add(_numRTC);
         activeStakes = activeStakes.add(1);
@@ -177,11 +169,23 @@ contract Stake {
         ) 
     {
         blockLocked = block.number;
-        blockReleased = blockLocked.mul(BLOCKHOLDPERIOD);
-        releaseDate = now.add(BLOCKHOLDPERIOD.mul(1 seconds));
+        blockReleased = blockLocked.add(BLOCKHOLDPERIOD);
+        releaseDate = now.add(BLOCKHOLDPERIOD.mul(BLOCKSEC));
         totalCoinsMinted = _numRTC.mul(MULTIPLIER);
         totalCoinsMinted = totalCoinsMinted.div(1 ether);
         rewardPerBlock = totalCoinsMinted.div(BLOCKHOLDPERIOD);
+    }
+
+    function calculateMint(uint256 _stakeNumber)
+        internal
+        view
+        returns (uint256 reward)
+    {
+        uint256 currentBlock = calculateCurrentBlock(_stakeNumber);
+        uint256 lastBlockWithdrawn = stakes[msg.sender][_stakeNumber].lastBlockWithdrawn;
+        uint256 blocksToReward = currentBlock.sub(lastBlockWithdrawn);
+        reward = blocksToReward.mul(stakes[msg.sender][_stakeNumber].rewardPerBlock);
+        reward = reward.div(1 ether);
     }
 
     function calculateTotalCoinsMinted(uint256 _numRTC) internal view returns (uint256 totalCoinsMinted) {
