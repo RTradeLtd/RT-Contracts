@@ -16,7 +16,7 @@ contract Stake is Administration {
 
     struct StakeStruct {
         bytes32 stakeID;
-        uint256 stakeAmount;
+        uint256 initialStake;
         uint256 blockLocked;
         uint256 blockUnlocked;
         uint256 releaseDate;
@@ -38,9 +38,10 @@ contract Stake is Administration {
         _;
     }
     
-    modifier validInitialStakeRelease(uint256 _stakeNum, address _staker) {
-        require(stakes[_staker][_stakeNum].state == StakeStateEnum.staking);
-        require(now >= stakes[_staker][_stakeNum].releaseDate && block.number >= stakes[_staker][_stakeNum].blockUnlocked);
+    modifier validInitialStakeRelease(uint256 _stakeNum) {
+        require(stakes[msg.sender][_stakeNum].state == StakeStateEnum.staking);
+        require(now >= stakes[msg.sender][_stakeNum].releaseDate && block.number >= stakes[msg.sender][_stakeNum].blockUnlocked);
+        require(internalRTCBalances[msg.sender] >= stakes[msg.sender][_stakeNum].initialStake);
         _;
     }
 
@@ -62,7 +63,14 @@ contract Stake is Administration {
         uint256 blocksToReward = currentBlock.sub(lastBlockWithdrawn);
         uint256 reward = blocksToReward.mul(stakes[msg.sender][_stakeNumber].rewardPerBlock);
         reward = reward.div(1 ether);
+        stakes[msg.sender][_stakeNumber].coinsWithdrawn = stakes[msg.sender][_stakeNumber].coinsWithdrawn.add(reward);
         require(RTI.mint(msg.sender, reward));
+    }
+
+    function withdrawInitialStake(uint256 _stakeNumber) external validInitialStakeRelease(_stakeNumber) {
+        uint256 initialStake = stakes[msg.sender][_stakeNumber].initialStake;
+        stakes[msg.sender][_stakeNumber].state = StakeStateEnum.staked;
+        require(RTI.transfer(msg.sender, initialStake));
     }
 
     function depositStake(uint256 _numRTC)
@@ -78,7 +86,7 @@ contract Stake is Administration {
         uint256 rewardPerBlock) = calculateStake(_numRTC);
         StakeStruct memory ss = StakeStruct({
             stakeID: keccak256(blockLocked, blockReleased, releaseDate, totalCoinsMinted, stakeCount),
-            stakeAmount: _numRTC,
+            initialStake: _numRTC,
             blockLocked: blockLocked,
             blockUnlocked: blockReleased,
             releaseDate: releaseDate,
@@ -89,6 +97,9 @@ contract Stake is Administration {
             state: StakeStateEnum.staking
         });
         stakes[msg.sender][stakeCount] = ss;
+        stakeNumToIDMap[msg.sender][stakeCount] = keccak256(blockLocked, blockReleased, releaseDate, totalCoinsMinted, stakeCount);
+        stakeIDToNumMap[msg.sender][keccak256(blockLocked, blockReleased, releaseDate, totalCoinsMinted, stakeCount)] = stakeCount;
+        numberOfStakes[msg.sender] = numberOfStakes[msg.sender].add(1);
         internalRTCBalances[msg.sender] = internalRTCBalances[msg.sender].add(_numRTC);
         require(RTI.transferFrom(msg.sender, address(this), _numRTC));
         // event place holder
