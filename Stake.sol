@@ -27,9 +27,15 @@ contract Stake is Administration {
     mapping (address => mapping (bytes32 => uint256)) public stakeIDToNumMap;
     mapping (address => mapping (uint256 => StakeStruct)) public stakes;
     mapping (address => uint256) public numberOfStakes;
+    mapping (address => uint256) public internalRTCBalances;
 
     modifier isWholeNumber(uint256 _number) {
         assert(_number % 1 == 0);
+        _;
+    }
+    
+    modifier validRelease(uint256 _stakeNum, address _staker) {
+        require(now >= stakes[_staker][_stakeNum].releaseDate && block.number >= stakes[_staker][_stakeNum].blockUnlocked);
         _;
     }
     constructor () {}
@@ -54,6 +60,9 @@ contract Stake is Administration {
             coinsMinted: totalCoinsMinted
         });
         stakes[msg.sender][stakeCount] = ss;
+        internalRTCBalances[msg.sender] = internalRTCBalances[msg.sender].add(_numRTC);
+        require(RTI.transferFrom(msg.sender, address(this), _numRTC));
+        // event place holder
         return true;
     }
 
@@ -80,5 +89,6 @@ contract Stake is Administration {
     function getStakeCount(address _staker) internal view returns (uint256) {
         return numberOfStakes[_staker];
     }
+
 
 }
