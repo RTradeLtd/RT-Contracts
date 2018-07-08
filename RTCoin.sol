@@ -18,18 +18,9 @@ contract RTCoin is Administration {
     string public name;
     string  public  symbol;
     uint256 public  totalSupply;
+    uint256 public  initialSupply = 61600000000000000000000000;
     uint8   public  decimals;
     bool    public  transfersFrozen;
-
-    enum AclState { nil, pending, active, disabled }
-    struct AclStruct {
-        address holder;
-        address[] validRecipientsArray;
-        address[] validSourcesArray;
-        mapping (address => bool) validRecipient;
-        mapping (address => bool) validSources;
-        AclState state;
-    }
 
     mapping (address => uint256) public balances;
     mapping (address => mapping (address => uint256)) public allowed;
@@ -40,6 +31,7 @@ contract RTCoin is Administration {
     event TransfersThawed(bool indexed _transfersThawed);
     event ForeignTokenTransfer(address indexed _sender, address indexed _recipient, uint256 _amount);
     event EthTransferOut(address indexed _recipient, uint256 _amount);
+
     modifier transfersNotFrozen() {
         require(!transfersFrozen);
         _;
@@ -55,8 +47,9 @@ contract RTCoin is Administration {
         symbol = "RTC";
         decimals = 18;
         // 88il in wei
-        totalSupply = 88888888000000000000000000;
+        totalSupply = initialSupply;
         balances[msg.sender] = totalSupply;
+        emit Transfer(address(0), msg.sender, totalSupply);
     }
 
     function transferForeignToken(
@@ -73,6 +66,21 @@ contract RTCoin is Administration {
         require(eI.balanceOf(address(this)) >=  _amount);
         require(eI.transfer(_recipient, _amount));
         emit ForeignTokenTransfer(msg.sender, _recipient, _amount);
+    }
+
+
+    // This needs to be locked down so only the staking contract can invoke this function
+    function mint(
+        address _recipient,
+        uint256 _amount)
+        public
+        onlyAdmin
+        returns (bool)
+    {
+        balances[_recipient] = balances[_recipient].add(_amount);
+        totalSupply = totalSupply.add(_amount);
+        emit Transfer(address(0), _recipient, _amount);
+        return true;
     }
 
     //This will only ever have to be called in cases where a contract suicides and ether is forcably sent

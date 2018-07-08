@@ -22,4 +22,7 @@ interface RTCoinInterface {
     function balanceOf(address _holder) external view returns (uint256);
 
     function allowance(address _owner, address _spender) external view returns (uint256);
+
+    // CUSTOM FUNCTIONS
+    function mint(address _recipient, uint256 _amount) external returns (bool);
 }
