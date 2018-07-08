@@ -12,7 +12,7 @@ contract Stake is Administration {
     uint256 constant public BLOCKHOLDPERIOD = 2103840;
     uint256 constant public BLOCKSEC = 13;
 
-    enum StakeStateEnum { nil, pending, registered, finished }
+    enum StakeStateEnum { nil, staking, staked }
 
     struct StakeStruct {
         bytes32 stakeID;
@@ -21,8 +21,10 @@ contract Stake is Administration {
         uint256 blockUnlocked;
         uint256 releaseDate;
         uint256 coinsMinted;
+        uint256 coinsWithdrawn;
         uint256 rewardPerBlock;
         uint256 lastBlockWithdrawn;
+        StakeStateEnum    state;
     }
 
     mapping (address => mapping (uint256 => bytes32)) public stakeNumToIDMap;
@@ -37,11 +39,31 @@ contract Stake is Administration {
     }
     
     modifier validInitialStakeRelease(uint256 _stakeNum, address _staker) {
+        require(stakes[_staker][_stakeNum].state == StakeStateEnum.staking);
         require(now >= stakes[_staker][_stakeNum].releaseDate && block.number >= stakes[_staker][_stakeNum].blockUnlocked);
         _;
     }
 
+    modifier validRewardWithdrawal(uint256 _stakeNumber) {
+        // allow people to withdraw their rewards even if the staking period is over
+        require(stakes[msg.sender][_stakeNumber].state == StakeStateEnum.staking || stakes[msg.sender][_stakeNumber].state == StakeStateEnum.staked);
+        require(stakes[msg.sender][_stakeNumber].coinsWithdrawn < stakes[msg.sender][_stakeNumber].coinsMinted);
+        uint256 currentBlock = block.number;
+        uint256 lastBlockWithdrawn = stakes[msg.sender][_stakeNumber].lastBlockWithdrawn;
+        require(currentBlock > lastBlockWithdrawn);
+        _;
+    }
+
     constructor () {}
+
+    function withdrawReward(uint256 _stakeNumber) external validRewardWithdrawal(_stakeNumber) returns (bool) {
+        uint256 currentBlock = block.number;
+        uint256 lastBlockWithdrawn = stakes[msg.sender][_stakeNumber].lastBlockWithdrawn;
+        uint256 blocksToReward = currentBlock.sub(lastBlockWithdrawn);
+        uint256 reward = blocksToReward.mul(stakes[msg.sender][_stakeNumber].rewardPerBlock);
+        reward = reward.div(1 ether);
+        require(RTI.mint(msg.sender, reward));
+    }
 
     function depositStake(uint256 _numRTC)
         external
@@ -61,8 +83,10 @@ contract Stake is Administration {
             blockUnlocked: blockReleased,
             releaseDate: releaseDate,
             coinsMinted: totalCoinsMinted,
+            coinsWithdrawn: 0,
             rewardPerBlock: rewardPerBlock,
-            lastBlockWithdrawn: block.number
+            lastBlockWithdrawn: block.number,
+            state: StakeStateEnum.staking
         });
         stakes[msg.sender][stakeCount] = ss;
         internalRTCBalances[msg.sender] = internalRTCBalances[msg.sender].add(_numRTC);
