@@ -53,7 +53,14 @@ contract MergedMinerValidator {
         uint256 currentBalance;
     }
 
+    enum BlockState {nil, stored}
+
+    struct Block {
+        bytes32 blockHash;
+        BlockState state;
+    }
     mapping (address => Miners) public miners;
+    mapping (uint256 => Block) public blocks;
 
     modifier validClaim() {
         require(miners[msg.sender].currentBalance >= MINWITHDRAWAL);
@@ -73,6 +80,21 @@ contract MergedMinerValidator {
         uint256 balance = miners[msg.sender].currentBalance;
         miners[msg.sender].currentBalance = 0;
         require(RTI.mint(msg.sender, balance));
+        return true;
+    }
+
+    function submitBlockHash(uint256 _blockNumber) public returns (bool) {
+        if (_blockNumber > 256) {
+            return false;
+        }
+        if (blockhash(_blockNumber) == bytes32(0)) {
+            return false;
+        }
+        Block memory b = Block({
+            blockHash: blockhash(_blockNumber),
+            state: BlockState.stored
+        });
+        blocks[_blockNumber] = b;
         return true;
     }
 
@@ -123,8 +145,11 @@ contract MergedMinerValidator {
         }
         
         parsedHeader.logsBloom = logsBloom;
-        
-        require(parsedHeader.derivedHash == block.blockhash(parsedHeader.blockNumber));
+        if (blocks[parsedHeader.blockNumber].state == BlockState.stored) {
+            require(parsedHeader.derivedHash == blocks[parsedHeader.blockNumber].blockHash);
+        } else {
+            require(parsedHeader.derivedHash == blockhash(parsedHeader.blockNumber));
+        }
         require(parsedHeader.miner == msg.sender);
         return true;
     }
