@@ -101,12 +101,8 @@ contract Stake {
         return true;
     }
 
-
     function withdrawReward(uint256 _stakeNumber) external validRewardWithdrawal(_stakeNumber) returns (bool) {
-        uint256 currentBlock = block.number;
-        if (currentBlock >= stakes[msg.sender][_stakeNumber].blockUnlocked) {
-            currentBlock = stakes[msg.sender][_stakeNumber].blockUnlocked;
-        }
+        uint256 currentBlock = calculateCurrentBlock(_stakeNumber);
         uint256 lastBlockWithdrawn = stakes[msg.sender][_stakeNumber].lastBlockWithdrawn;
         uint256 blocksToReward = currentBlock.sub(lastBlockWithdrawn);
         uint256 reward = blocksToReward.mul(stakes[msg.sender][_stakeNumber].rewardPerBlock);
@@ -123,6 +119,7 @@ contract Stake {
     function withdrawInitialStake(uint256 _stakeNumber) external validInitialStakeRelease(_stakeNumber) returns (bool) {
         uint256 initialStake = stakes[msg.sender][_stakeNumber].initialStake;
         stakes[msg.sender][_stakeNumber].state = StakeStateEnum.staked;
+        activeStakes = activeStakes.sub(1);
         emit InitialStakeWithdrawn(msg.sender, _stakeNumber, initialStake);
         require(RTI.transfer(msg.sender, initialStake));
         return true;
@@ -192,6 +189,13 @@ contract Stake {
         totalCoinsMinted = totalCoinsMinted.div(1 ether);
     }
 
+    function calculateCurrentBlock(uint256 _stakeNumber) internal view returns (uint256 currentBlock) {
+        currentBlock = block.number;
+        if (currentBlock >= stakes[msg.sender][_stakeNumber].blockUnlocked) {
+            currentBlock = stakes[msg.sender][_stakeNumber].blockUnlocked;
+        }
+    }
+    
     function getStakeCount(address _staker) internal view returns (uint256) {
         return numberOfStakes[_staker];
     }
