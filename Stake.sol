@@ -39,11 +39,6 @@ contract Stake is Administration {
     mapping (address => uint256) public numberOfStakes;
     mapping (address => uint256) public internalRTCBalances;
 
-    modifier isWholeNumber(uint256 _number) {
-        assert(_number % 1 == 0);
-        _;
-    }
-    
     modifier validInitialStakeRelease(uint256 _stakeNum) {
         require(stakes[msg.sender][_stakeNum].state == StakeStateEnum.staking);
         require(now >= stakes[msg.sender][_stakeNum].releaseDate && block.number >= stakes[msg.sender][_stakeNum].blockUnlocked);
@@ -65,6 +60,9 @@ contract Stake is Administration {
 
     function withdrawReward(uint256 _stakeNumber) external validRewardWithdrawal(_stakeNumber) returns (bool) {
         uint256 currentBlock = block.number;
+        if (currentBlock >= stakes[msg.sender][_stakeNumber].blockUnlocked) {
+            currentBlock = stakes[msg.sender][_stakeNumber].blockUnlocked;
+        }
         uint256 lastBlockWithdrawn = stakes[msg.sender][_stakeNumber].lastBlockWithdrawn;
         uint256 blocksToReward = currentBlock.sub(lastBlockWithdrawn);
         uint256 reward = blocksToReward.mul(stakes[msg.sender][_stakeNumber].rewardPerBlock);
@@ -82,7 +80,6 @@ contract Stake is Administration {
 
     function depositStake(uint256 _numRTC)
         external
-        isWholeNumber(_numRTC)
         returns (bool)
     {
         uint256 stakeCount = getStakeCount(msg.sender);
