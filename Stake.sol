@@ -64,6 +64,7 @@ contract Stake is Administration {
         uint256 reward = blocksToReward.mul(stakes[msg.sender][_stakeNumber].rewardPerBlock);
         reward = reward.div(1 ether);
         stakes[msg.sender][_stakeNumber].coinsWithdrawn = stakes[msg.sender][_stakeNumber].coinsWithdrawn.add(reward);
+        stakes[msg.sender][_stakeNumber].lastBlockWithdrawn = block.number;
         require(RTI.mint(msg.sender, reward));
     }
 
