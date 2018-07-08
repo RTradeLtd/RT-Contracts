@@ -1,13 +1,15 @@
 pragma solidity 0.4.24;
 
 /*
- This contract was originally written by the following author. 
+This contract was originally written by the following author, Chance Santana-Wees
 I (Postables, RTrade Technologies LTD have repurposed it for merged mining rewards
 
 Original:
 Author: Chance Santana-Wees
 Contact Email: figs999@gmail.com
 */
+
+// Version 1
     
 import "./Math/SafeMath.sol";
 import "./Interfaces/RTCoinInterface.sol";
@@ -83,21 +85,6 @@ contract MergedMinerValidator {
         return true;
     }
 
-    function submitBlockHash(uint256 _blockNumber) public returns (bool) {
-        if (_blockNumber > 256) {
-            return false;
-        }
-        if (blockhash(_blockNumber) == bytes32(0)) {
-            return false;
-        }
-        Block memory b = Block({
-            blockHash: blockhash(_blockNumber),
-            state: BlockState.stored
-        });
-        blocks[_blockNumber] = b;
-        return true;
-    }
-
     function parseBlockHeader(bytes _rlpData) internal view returns (bool) {
         BlockHeader memory parsedHeader;
         
@@ -145,11 +132,7 @@ contract MergedMinerValidator {
         }
         
         parsedHeader.logsBloom = logsBloom;
-        if (blocks[parsedHeader.blockNumber].state == BlockState.stored) {
-            require(parsedHeader.derivedHash == blocks[parsedHeader.blockNumber].blockHash);
-        } else {
-            require(parsedHeader.derivedHash == blockhash(parsedHeader.blockNumber));
-        }
+        require(parsedHeader.derivedHash == blockhash(parsedHeader.blockNumber));
         require(parsedHeader.miner == msg.sender);
         return true;
     }
