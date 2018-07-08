@@ -1,7 +1,56 @@
 pragma solidity 0.4.24;
 
-import "./Interfaces/RTCoinInterface.sol";
-import "./Math/SafeMath.sol";
+interface RTCoinInterface {
+    
+    function freezeTransfers() external returns (bool);
+
+    function thawTransfers() external returns (bool);
+
+    function transfer(address _recipient, uint256 _amount) external returns (bool transferred);
+
+    function transferFrom(address _owner, address _recipient, uint256 _amount) external returns (bool transferredFrom);
+
+    function approve(address _spender, uint256 _amount) external returns (bool approved);
+    /**GETTERS */
+
+    function totalSupply() external view returns (uint256);
+
+    function balanceOf(address _holder) external view returns (uint256);
+
+    function allowance(address _owner, address _spender) external view returns (uint256);
+
+    // CUSTOM FUNCTIONS
+    function mint(address _recipient, uint256 _amount) external returns (bool);
+    function maxSupply() external view returns (uint256);
+    function stakeContract() external view returns (address);
+}
+
+library SafeMath {
+
+  // We use `pure` bbecause it promises that the value for the function depends ONLY
+  // on the function arguments
+    function mul(uint256 a, uint256 b) internal pure  returns (uint256) {
+        uint256 c = a * b;
+        require(a == 0 || c / a == b);
+        return c;
+    }
+
+    function div(uint256 a, uint256 b) internal pure returns (uint256) {
+        uint256 c = a / b;
+        return c;
+    }
+
+    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
+        require(b <= a);
+        return a - b;
+    }
+
+    function add(uint256 a, uint256 b) internal pure returns (uint256) {
+        uint256 c = a + b;
+        require(c >= a);
+        return c;
+    }
+}
 
 contract Stake {
     using SafeMath for uint256;
@@ -204,3 +253,4 @@ contract Stake {
         return true;
     }
 }
+
