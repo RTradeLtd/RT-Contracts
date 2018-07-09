@@ -70,12 +70,10 @@ contract MergedMinerValidator {
     }
 
     function submitBlockValidation(bytes _rlpData) public returns (bool) {
-        if (parseBlockHeader(_rlpData) == true) {
-            miners[msg.sender].totalMined = miners[msg.sender].totalMined.add(BLOCKREWARD);
-            miners[msg.sender].currentBalance = miners[msg.sender].currentBalance.add(BLOCKREWARD);
-            return true;
-        }
-        return false;
+        require(parseBlockHeader(_rlpData));
+        miners[msg.sender].totalMined = miners[msg.sender].totalMined.add(BLOCKREWARD);
+        miners[msg.sender].currentBalance = miners[msg.sender].currentBalance.add(BLOCKREWARD);
+        return true;
     }
 
     function claimTokens() public validClaim returns (bool) {
@@ -131,7 +129,6 @@ contract MergedMinerValidator {
             calldatacopy(add(parsedHeader,288), _idx, 8)                //nonce
         }
         
-        parsedHeader.logsBloom = logsBloom;
         require(parsedHeader.derivedHash == blockhash(parsedHeader.blockNumber));
         require(parsedHeader.miner == msg.sender);
         return true;

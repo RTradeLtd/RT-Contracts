@@ -15,4 +15,13 @@ Your stake reward can be withdrawn whenever you please, so long as at least one 
 
 It is possible for all miners of ethereum, to also be rewarded RTC. In order to do so, the miner of a block must submit sufficient validation information to the Merged Miner Contract. This validation information must be the entire block header, as well as necessary components to parse through, and reconstruct the block header to validate that the person submitting the transaction, is the person who mined the block. There will be a semi-significant mininum withdrawal amount from the merged mining contract.
 
-The release of the merged mining functionality will most likely not be delivered when RTC is released on the mainnet, and will be rolled out at a later date. The PoS functionality will be available immediately.
+Development roadmap for Merged Mining:
+    1) require simple rlp encoded block header submission (75% complete)
+    2) Allow simple, but incentivized, block hash + number submission (not yet started)
+    3) require block header validation  (not yet started)
+
+
+## Thanks
+
+Thanks to @Figs999 for the EventStorage.sol contract which is serving as a basis for block header parsing. 
+    > https://github.com/figs999/Ethereum/blob/master/EventStorage.sol
