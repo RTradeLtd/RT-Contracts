@@ -190,7 +190,6 @@ contract Stake {
         uint256 lastBlockWithdrawn = stakes[msg.sender][_stakeNumber].lastBlockWithdrawn;
         uint256 blocksToReward = currentBlock.sub(lastBlockWithdrawn);
         reward = blocksToReward.mul(stakes[msg.sender][_stakeNumber].rewardPerBlock);
-        reward = reward.div(1 ether);
     }
 
     function calculateTotalCoinsMinted(uint256 _numRTC) internal pure returns (uint256 totalCoinsMinted) {
