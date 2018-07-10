@@ -117,6 +117,7 @@ func main() {
 	}
 	fmt.Printf("%+v\n", s)
 	time.Sleep(time.Minute * 1)
+	fmt.Println("minting coins")
 	tx, err = stake.Mint(auth, big.NewInt(0))
 	if err != nil {
 		fmt.Println("failed to withdraw stake")
@@ -126,11 +127,18 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	s, err = stake.Stakes(nil, auth.From, big.NewInt(0))
+	time.Sleep(time.Minute * 2)
+	fmt.Println("withdrawing initial stake")
+	tx, err = stake.WithdrawInitialStake(auth, big.NewInt(0))
+	if err != nil {
+		fmt.Println("error withdrawing initial stake")
+		log.Fatal(err)
+	}
+	fmt.Println("waiting for stake withdrawal transaction to be mined")
+	_, err = bind.WaitMined(context.TODO(), client, tx)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("%+v\n", s)
 }
 
 // ConvertNumberToBaseWei is used to take a number, and multiply it by 10^18
