@@ -1,26 +1,28 @@
 pragma solidity 0.4.24;
 
 import "./Interfaces/RTCoinInterface.sol";
+import "./Interfaces/ERC20Interface.sol";
 import "./Math/SafeMath.sol";
 
 contract Stake {
     using SafeMath for uint256;
 
     // we mark as constant private to reduce gas costs
-    address constant private TOKENCONTRACT = address(0);
+    
     // Minimum stake of 1RTC
-    uint256 constant private MINSTAKE = 1000000000000000000;
+    uint256 constant public MINSTAKE = 1000000000000000000;
     // NOTE ON MULTIPLIER: this is right now set to 1% this may however change before token is released
-    uint256 constant private MULTIPLIER = 10000000000000000;
+    uint256 constant public MULTIPLIER = 10000000000000000;
     // we use an average blocks per year of 2,103,840 assuming an average block time of 15 seconds.
     // the only thing effected by this, is when they can withdraw their initial stake. 
     // To do so, 2103840 blocks must've passed. The current block time must also be equal,or greater to
     // the "release date" which is calculated based off the time the initial stake is deposited added to
     // the number of seconds per block (15) multiplied by the block hold period of 2103840 blocks.
     // all other stake reward creditation and withdrawal is ultimately controlled by real-time block generation speeds.
-    uint256 constant private BLOCKHOLDPERIOD = 2103840;
-    uint256 constant private BLOCKSEC = 15;
-    RTCoinInterface constant private RTI = RTCoinInterface(TOKENCONTRACT);
+    uint256 constant public BLOCKHOLDPERIOD = 2103840;
+    uint256 constant public BLOCKSEC = 15;
+    address  public TOKENCONTRACT = 0x3fDe03720917246B73ba532e4650c656D6020578;
+    RTCoinInterface   public RTI = RTCoinInterface(TOKENCONTRACT);
 
     uint256 public activeStakes;
     address public admin;
@@ -79,7 +81,7 @@ contract Stake {
         _;
     }
 
-    constructor() {
+    constructor() public {
         // prevent deployment if the token contract hasn't been set yet
         if (TOKENCONTRACT == address(0)) {
             revert();
@@ -87,16 +89,19 @@ contract Stake {
         admin = msg.sender;
     }
 
-    function disableNewStakes() external onlyAdmin returns (bool) {
-        newStakesAllowed = false;
-        emit StakesDisabled();
-        require(RTI.stakeContract() == address(this));
+    function setRTI(address _contract) public onlyAdmin returns (bool) {
+        RTI = RTCoinInterface(_contract);
+        TOKENCONTRACT = _contract;
         return true;
     }
 
-    function allowNewStakes() external onlyAdmin returns (bool) {
+    function disableNewStakes() public onlyAdmin returns (bool) {
+        newStakesAllowed = false;
+        return true;
+    }
+
+    function allowNewStakes() public onlyAdmin returns (bool) {
         newStakesAllowed = true;
-        emit StakesEnabled();
         require(RTI.stakeContract() == address(this));
         return true;
     }
@@ -188,7 +193,7 @@ contract Stake {
         reward = reward.div(1 ether);
     }
 
-    function calculateTotalCoinsMinted(uint256 _numRTC) internal view returns (uint256 totalCoinsMinted) {
+    function calculateTotalCoinsMinted(uint256 _numRTC) internal pure returns (uint256 totalCoinsMinted) {
         totalCoinsMinted = _numRTC.mul(MULTIPLIER);
         totalCoinsMinted = totalCoinsMinted.div(1 ether);
     }

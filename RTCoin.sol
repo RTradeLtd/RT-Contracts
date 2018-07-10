@@ -10,10 +10,7 @@ pragma solidity 0.4.24;
 import "./Modules/Administration.sol";
 import "./Math/SafeMath.sol";
 import "./Interfaces/ERC20Interface.sol";
-
-interface StakeInterface {
-    function activeStakes() external view returns (uint256);
-}
+import "./Interfaces/StakeInterface.sol";
 
 contract RTCoin is Administration {
 
@@ -242,4 +239,5 @@ contract RTCoin is Administration {
     {
         return allowed[_owner][_spender];
     }
+
 }
