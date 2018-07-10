@@ -23,7 +23,7 @@ contract RTCoin is Administration {
     string  public  name;
     string  public  symbol;
     uint256 public  totalSupply;
-    uint256 public  initialSupply = 61600000000000000000000000;
+    uint256 public  initialSupply = 61000000000000000000000000;
     uint8   public  decimals;
     bool    public  transfersFrozen;
 

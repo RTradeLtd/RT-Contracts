@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/big"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -85,5 +87,55 @@ func main() {
 	if !allowed {
 		log.Fatal("stakes not allowed when they should be")
 	}
-	fmt.Println("stakes allowed yeboi ", allowed)
+
+	b := big.NewInt(1000000000000000000)
+	bigWei := ConvertNumberToBaseWei(b)
+	tx, err = rtc.Approve(auth, stakeADDR, bigWei)
+	if err != nil {
+		fmt.Println("failed to approve")
+		log.Fatal(err)
+	}
+	_, err = bind.WaitMined(context.TODO(), client, tx)
+	if err != nil {
+		fmt.Println("error waiting for approve tx")
+		log.Fatal(err)
+	}
+
+	tx, err = stake.DepositStake(auth, b)
+	if err != nil {
+		fmt.Println("failed to deposit stake")
+		log.Fatal(err)
+	}
+	_, err = bind.WaitMined(context.TODO(), client, tx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	s, err := stake.Stakes(nil, auth.From, big.NewInt(0))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%+v\n", s)
+	time.Sleep(time.Minute * 1)
+	tx, err = stake.Mint(auth, big.NewInt(0))
+	if err != nil {
+		fmt.Println("failed to withdraw stake")
+		log.Fatal(err)
+	}
+	_, err = bind.WaitMined(context.TODO(), client, tx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	s, err = stake.Stakes(nil, auth.From, big.NewInt(0))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%+v\n", s)
+}
+
+// ConvertNumberToBaseWei is used to take a number, and multiply it by 10^18
+func ConvertNumberToBaseWei(num *big.Int) *big.Int {
+	exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
+	baseWei := new(big.Int).Mul(num, exp)
+	return baseWei
 }
