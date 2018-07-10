@@ -19,7 +19,7 @@ contract Stake {
     // the "release date" which is calculated based off the time the initial stake is deposited added to
     // the number of seconds per block (15) multiplied by the block hold period of 2103840 blocks.
     // all other stake reward creditation and withdrawal is ultimately controlled by real-time block generation speeds.
-    uint256 constant public BLOCKHOLDPERIOD = 5;
+    uint256 constant public BLOCKHOLDPERIOD = 2103840;
     uint256 constant public BLOCKSEC = 15;
     address  public TOKENCONTRACT = 0x3fDe03720917246B73ba532e4650c656D6020578;
     RTCoinInterface   public RTI = RTCoinInterface(TOKENCONTRACT);
