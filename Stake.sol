@@ -11,8 +11,8 @@ contract Stake {
     
     // Minimum stake of 1RTC
     uint256 constant public MINSTAKE = 1000000000000000000;
-    // NOTE ON MULTIPLIER: this is right now set to 1% this may however change before token is released
-    uint256 constant public MULTIPLIER = 10000000000000000;
+    // NOTE ON MULTIPLIER: this is right now set to 10% this may however change before token is released
+    uint256 constant public MULTIPLIER = 100000000000000000;
     // we use an average blocks per year of 2,103,840 assuming an average block time of 15 seconds.
     // the only thing effected by this, is when they can withdraw their initial stake. 
     // To do so, 2103840 blocks must've passed. The current block time must also be equal,or greater to
@@ -190,6 +190,13 @@ contract Stake {
         uint256 lastBlockWithdrawn = stakes[msg.sender][_stakeNumber].lastBlockWithdrawn;
         uint256 blocksToReward = currentBlock.sub(lastBlockWithdrawn);
         reward = blocksToReward.mul(stakes[msg.sender][_stakeNumber].rewardPerBlock);
+        // make sure they can't mint more than they are allowed
+        uint256 totalToMint = stakes[msg.sender][_stakeNumber].totalCoinsToMint;
+        uint256 currentCoinsMinted = stakes[msg.sender][_stakeNumber].coinsMinted;
+        uint256 newCoinsMinted = currentCoinsMinted.add(reward);
+        if (newCoinsMinted > totalToMint) {
+            reward = newCoinsMinted.sub(totalToMint);
+        }
     }
 
     function calculateTotalCoinsMinted(uint256 _numRTC) internal pure returns (uint256 totalCoinsMinted) {
