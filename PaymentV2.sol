@@ -13,7 +13,7 @@ contract Payments {
     RTCoinInterface constant public RTI = RTCoinInterface(TOKENADDRESS);
 
     // PaymentState will keep track of the state of a payment, nil means we havent seen th payment before
-    enum PaymentState{ nil, pending, paid }
+    enum PaymentState{ nil, paid }
     // How payments can be made, RTC or eth
     enum PaymentMethod{ RTC, ETH }
 
@@ -27,8 +27,12 @@ contract Payments {
     mapping (address => uint256) public numPayments;
     mapping (address => mapping(uint256 => PaymentStruct)) public payments;
 
-    // payment message looks like
-    // keccak256(msg.sender, paymentNumber, paymentMethod, paymentAmount)
+    event PaymentMade(address _payer, uint256 _paymentNumber, uint8 _paymentMethod, uint256 _paymentAmount);
+
+    modifier validPayment(uint256 _paymentNumber) {
+        require(payments[msg.sender][_paymentNumber].state == PaymentState.nil, "payment already paid for");
+        _;
+    }
 
     function makePayment(
         bytes32 _h,
@@ -40,6 +44,7 @@ contract Payments {
         uint256 _chargeAmountInWei)
         public
         payable
+        validPayment(_paymentNumber)
         returns (bool)
     {
         require(_paymentMethod == 0 || _paymentMethod == 1, "invalid payment method");
@@ -50,13 +55,23 @@ contract Payments {
         address signer = ecrecover(_h, _v, _r, _s);
         // ensure that we actually signed this message
         require(signer == SIGNER, "recovered signer does not match");
+        PaymentStruct memory ps = PaymentStruct({
+            paymentNumber: _paymentNumber,
+            chargeAmountInWei: _chargeAmountInWei,
+            method: PaymentMethod(_paymentMethod),
+            state: PaymentState.paid
+        });
+        payments[msg.sender][_paymentNumber] = ps;
         numPayments[msg.sender] = numPayments[msg.sender].add(1);
         if (PaymentMethod(_paymentMethod) == PaymentMethod.ETH) {
             require(msg.value == _chargeAmountInWei, "msg.value does not equal charge amount");
+            emit PaymentMade(msg.sender, _paymentNumber, _paymentMethod, _chargeAmountInWei);
             HOTWALLET.transfer(msg.value);
             return true;
         }
+        emit PaymentMade(msg.sender, _paymentNumber, _paymentMethod, _chargeAmountInWei);
         require(RTI.transferFrom(msg.sender, HOTWALLET, _chargeAmountInWei), "trasferFrom failed, most likely needs approval");
+        return true;
     }
 
     function generatePreimage(
