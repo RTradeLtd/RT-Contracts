@@ -1,7 +1,7 @@
 pragma solidity 0.4.24;
 
-import "./Interfaces/RTCoinInterface.sol";
-import "./Math/SafeMath.sol";
+import "../Interfaces/RTCoinInterface.sol";
+import "../Math/SafeMath.sol";
 
 contract Payments {
     using SafeMath for uint256;    
@@ -30,7 +30,7 @@ contract Payments {
     event PaymentMade(address _payer, uint256 _paymentNumber, uint8 _paymentMethod, uint256 _paymentAmount);
 
     modifier validPayment(uint256 _paymentNumber) {
-        require(payments[msg.sender][_paymentNumber].state == PaymentState.nil, "payment already paid for");
+        require(payments[msg.sender][_paymentNumber].state == PaymentState.nil, "payment already made");
         _;
     }
 

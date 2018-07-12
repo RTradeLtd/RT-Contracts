@@ -1,8 +1,8 @@
 pragma solidity 0.4.24;
 
-import "./Modules/UsersAdministration.sol";
-import "./Modules/Utils.sol";
-import "./Math/SafeMath.sol";
+import "../Modules/UsersAdministration.sol";
+import "../Modules/Utils.sol";
+import "../Math/SafeMath.sol";
 
 interface ERC20I {
     function transferFrom(address _owner, address _recipient, uint256 _amount) external returns (bool);

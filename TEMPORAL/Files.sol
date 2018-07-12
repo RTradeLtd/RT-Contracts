@@ -9,8 +9,8 @@ current limitations:
         this will be changed in subsequent releases
 */
 
-import "./Modules/Utils.sol";
-import "./Math/SafeMath.sol";
+import "../Modules/Utils.sol";
+import "../Math/SafeMath.sol";
 
 contract FileRepository is Utils {
 
