@@ -112,7 +112,7 @@ contract Payments {
         bool   _prefixed)
         public
         view
-        returns (address)
+        returns (bool)
     {
         require(_paymentMethod == 0 || _paymentMethod == 1, "invalid payment method");
         bytes32 image;
@@ -123,7 +123,7 @@ contract Payments {
             image = generatePreimage(_paymentNumber, _chargeAmountInWei, _paymentMethod);
         }
         require(image == _h, "failed to reconstruct preimages");
-        return ecrecover(_h, _v, _r, _s);
+        return ecrecover(_h, _v, _r, _s) == SIGNER;
     }
 
     function generatePreimage(

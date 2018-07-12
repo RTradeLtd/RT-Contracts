@@ -52,9 +52,9 @@ func main() {
 		log.Fatalf("Error generating payment signer %v", err)
 	}
 	method := uint8(0)
-	number := big.NewInt(0)
-	amount := big.NewInt(0)
-	msg, err := ps.GenerateSignedPaymentMessageNoPrefix(auth.From, method, number, amount)
+	number := big.NewInt(100)
+	amount := big.NewInt(10)
+	msg, err := ps.GenerateSignedPaymentMessagePrefixed(auth.From, method, number, amount)
 	if err != nil {
 		log.Fatalf("Error signing payment message %v", err)
 	}
@@ -67,13 +67,13 @@ func main() {
 	}
 	fmt.Println("Images are valid: ", valid)
 	fmt.Println(msg.V)
-	signer, err := contract.VerifySigner(nil, msg.H, msg.V, msg.R, msg.S, number, method, amount, true)
+	validSigner, err := contract.VerifySigner(nil, msg.H, msg.V, msg.R, msg.S, number, method, amount, true)
 	if err != nil {
 		log.Fatalf("failed to verify signer %v", err)
 	}
 
-	if signer != auth.From {
-		log.Fatalf("incorrect signer address received, expected %s got %s", auth.From.String(), signer.String())
+	if !validSigner {
+		log.Fatalf("signature is not valid")
 	}
 	fmt.Println("signer recovered from signature matches")
 }
