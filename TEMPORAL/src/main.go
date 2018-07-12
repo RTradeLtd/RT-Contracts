@@ -61,4 +61,19 @@ func main() {
 
 	fmt.Printf("%+v\n", msg)
 
+	valid, err := contract.VerifyImages(nil, msg.H, number, method, amount, true)
+	if err != nil {
+		log.Fatalf("failed to verify images %v", err)
+	}
+	fmt.Println("Images are valid: ", valid)
+	fmt.Println(msg.V)
+	signer, err := contract.VerifySigner(nil, msg.H, msg.V, msg.R, msg.S, number, method, amount, true)
+	if err != nil {
+		log.Fatalf("failed to verify signer %v", err)
+	}
+
+	if signer != auth.From {
+		log.Fatalf("incorrect signer address received, expected %s got %s", auth.From.String(), signer.String())
+	}
+	fmt.Println("signer recovered from signature matches")
 }

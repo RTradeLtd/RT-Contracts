@@ -3,6 +3,7 @@ package signer
 import (
 	"crypto/ecdsa"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"math/big"
 
@@ -38,6 +39,7 @@ func GeneratePaymentSigner(keyFilePath, keyPass string) (*PaymentSigner, error) 
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("recovered address is ", pk.Address.String())
 	return &PaymentSigner{Key: pk.PrivateKey}, nil
 }
 
@@ -49,13 +51,14 @@ func (ps *PaymentSigner) GenerateSignedPaymentMessageNoPrefix(ethAddress common.
 		Uint8(paymentMethod),
 		Uint256(chargeAmountInWei),
 	)
-	sig, err := crypto.Sign(hashToSign, ps.Key)
+	hashPrefixed := SoliditySHA3WithPrefix(hashToSign)
+	sig, err := crypto.Sign(hashPrefixed, ps.Key)
 	if err != nil {
 		return nil, err
 	}
 	var h, r, s [32]byte
-	for k := range hashToSign {
-		h[k] = hashToSign[k]
+	for k := range hashPrefixed {
+		h[k] = hashPrefixed[k]
 	}
 	if len(h) > 32 || len(h) < 32 {
 		return nil, errors.New("failed to parse h")
