@@ -2,6 +2,7 @@ package signer
 
 import (
 	"crypto/ecdsa"
+	"encoding/hex"
 	"io/ioutil"
 	"math/big"
 
@@ -20,9 +21,9 @@ type PaymentSigner struct {
 }
 
 type SignedMessage struct {
-	H []byte `json:"h"`
-	R []byte `json:"r"`
-	S []byte `json:"s"`
+	H string `json:"h"`
+	R string `json:"r"`
+	S string `json:"s"`
 	V uint8  `json:"v"`
 }
 
@@ -40,7 +41,7 @@ func GeneratePaymentSigner(keyFilePath, keyPass string) (*PaymentSigner, error) 
 	return &PaymentSigner{Key: pk.PrivateKey}, nil
 }
 
-func (ps *PaymentSigner) GenerateSignedPaymentMessage(ethAddress common.Address, paymentMethod uint8, paymentNumber, chargeAmountInWei *big.Int) (*SignedMessage, error) {
+func (ps *PaymentSigner) GenerateSignedPaymentMessageNoPrefix(ethAddress common.Address, paymentMethod uint8, paymentNumber, chargeAmountInWei *big.Int) (*SignedMessage, error) {
 	//  return keccak256(abi.encodePacked(msg.sender, _paymentNumber, _paymentMethod, _chargeAmountInWei));
 	hashToSign := SoliditySHA3(
 		Address(ethAddress),
@@ -53,10 +54,10 @@ func (ps *PaymentSigner) GenerateSignedPaymentMessage(ethAddress common.Address,
 		return nil, err
 	}
 	msg := &SignedMessage{
-		H: hashToSign,
-		R: sig[0:32],
-		S: sig[32:64],
-		V: uint8(sig[64]) + 27,
+		H: hex.EncodeToString(hashToSign),
+		R: hex.EncodeToString(sig[0:32]),
+		S: hex.EncodeToString(sig[32:64]),
+		V: uint8(sig[64]) + 1,
 	}
 	return msg, nil
 }

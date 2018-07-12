@@ -26,7 +26,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error unlocking account %v", err)
 	}
-	paymentsADDR, tx, _, err := DeployPayments(auth, client)
+	paymentsADDR, tx, contract, err := DeployPayments(auth, client)
 	if err != nil {
 		log.Fatalf("Error creating contract deployment transaction %v", err)
 	}
@@ -35,6 +35,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error waiting for transaction to be mined %v", err)
 	}
+
+	sAddr, err := contract.SIGNER(nil)
+	if err != nil {
+		log.Fatalf("Failed to retrieve signer address %v", err)
+	}
+
+	if sAddr != auth.From {
+		log.Fatal("signer addr is not equal to the current account")
+	}
+
 	fmt.Println("Payments contract address", paymentsADDR.String())
 	// read our key
 	ps, err := signer.GeneratePaymentSigner(keyFile, keyPass)
@@ -44,9 +54,10 @@ func main() {
 	method := uint8(0)
 	number := big.NewInt(0)
 	amount := big.NewInt(0)
-	msg, err := ps.GenerateSignedPaymentMessage(auth.From, method, number, amount)
+	msg, err := ps.GenerateSignedPaymentMessageNoPrefix(auth.From, method, number, amount)
 	if err != nil {
 		log.Fatalf("Error signing payment message %v", err)
 	}
-	fmt.Printf("message\n%+v\n", msg)
+
+	fmt.Printf("%+v\n", msg)
 }

@@ -7,7 +7,7 @@ contract Payments {
     using SafeMath for uint256;    
     bytes constant private PREFIX = "\x19Ethereum Signed Message:\n32";
     // this is the address we use to sign payments
-    address constant public SIGNER = address(0);
+    address constant public SIGNER = 0x7E4A2359c745A982a54653128085eAC69E446DE1;
     address constant public TOKENADDRESS = address(0);
     address constant public HOTWALLET = address(0);
     RTCoinInterface constant public RTI = RTCoinInterface(TOKENADDRESS);
@@ -78,6 +78,52 @@ contract Payments {
         emit PaymentMade(msg.sender, _paymentNumber, _paymentMethod, _chargeAmountInWei);
         require(RTI.transferFrom(msg.sender, HOTWALLET, _chargeAmountInWei), "trasferFrom failed, most likely needs approval");
         return true;
+    }
+
+    function verifyImages(
+        bytes32 _h,
+        uint256 _paymentNumber,
+        uint8   _paymentMethod,
+        uint256 _chargeAmountInWei,
+        bool   _prefixed)
+        public
+        view
+        returns (bool)
+    {
+        require(_paymentMethod == 0 || _paymentMethod == 1, "invalid payment method");
+        bytes32 image;
+        if (_prefixed) {
+            bytes32 preimage = generatePreimage(_paymentNumber, _chargeAmountInWei, _paymentMethod);
+            image = generatePrefixedPreimage(preimage);
+        } else {
+            image = generatePreimage(_paymentNumber, _chargeAmountInWei, _paymentMethod);
+        }
+        return image == _h;
+    }
+
+    function verifySigner(
+        bytes32 _h,
+        uint8   _v,
+        bytes32 _r,
+        bytes32 _s,
+        uint256 _paymentNumber,
+        uint8   _paymentMethod,
+        uint256 _chargeAmountInWei,
+        bool   _prefixed)
+        public
+        view
+        returns (address)
+    {
+        require(_paymentMethod == 0 || _paymentMethod == 1, "invalid payment method");
+        bytes32 image;
+        if (_prefixed) {
+            bytes32 preimage = generatePreimage(_paymentNumber, _chargeAmountInWei, _paymentMethod);
+            image = generatePrefixedPreimage(preimage);
+        } else {
+            image = generatePreimage(_paymentNumber, _chargeAmountInWei, _paymentMethod);
+        }
+        require(image == _h, "failed to reconstruct preimages");
+        return ecrecover(_h, _v, _r, _s);
     }
 
     function generatePreimage(
