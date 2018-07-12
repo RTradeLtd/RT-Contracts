@@ -63,18 +63,18 @@ func (ps *PaymentSigner) GenerateSignedPaymentMessagePrefixed(ethAddress common.
 	if len(h) > 32 || len(h) < 32 {
 		return nil, errors.New("failed to parse h")
 	}
-	for k := range sig[0:32] {
-		r[k] = sig[k]
+	for k := range sig[0:64] {
+		if k < 32 {
+			r[k] = sig[k]
+		}
+		if k >= 32 {
+			s[k-32] = sig[k]
+		}
 	}
-	if len(r) > 32 || len(r) < 32 {
-		return nil, errors.New("failed to parse r")
+	if len(r) != len(s) && len(r) != 32 {
+		return nil, errors.New("failed to parse R+S")
 	}
-	for k := range sig[32:64] {
-		s[k] = sig[k]
-	}
-	if len(s) > 32 || len(r) < 32 {
-		return nil, errors.New("failed to parse s")
-	}
+
 	msg := &SignedMessage{
 		H: h,
 		R: r,
