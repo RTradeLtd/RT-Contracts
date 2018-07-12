@@ -3,6 +3,15 @@ pragma solidity 0.4.24;
 import "../Interfaces/RTCoinInterface.sol";
 import "../Math/SafeMath.sol";
 
+/*
+This contract is used to facilitate payments for file uploads, or content pins through TEMPORAL.
+It is inteded to be utilized by infrequent uploaders, who don't need a payment channel, but want smart contract validated payments.
+The way it works is that when attempting to upload a file, or pin content to TEMPORAL, the size of the data is calculated, and a price in USD is determined based
+on how may months you want the content in our system for. TEMPORAL will generate valid signature data, which when submitted to a smart contract will be validated.
+IF validation passes the specified amount of RTC or ETH is taken from your account, and sent to one of our hot wallets. After transaction confirmation, the data
+will be injected into our system.
+*/
+
 contract Payments {
     using SafeMath for uint256;    
     bytes constant private PREFIX = "\x19Ethereum Signed Message:\n32";
