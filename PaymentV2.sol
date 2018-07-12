@@ -41,17 +41,23 @@ contract Payments {
         bytes32 _s,
         uint256 _paymentNumber,
         uint8   _paymentMethod,
-        uint256 _chargeAmountInWei)
+        uint256 _chargeAmountInWei,
+        bool   _prefixed) // this allows us to sign messages on our own, without prefix https://github.com/ethereum/EIPs/issues/191
         public
         payable
         validPayment(_paymentNumber)
         returns (bool)
     {
         require(_paymentMethod == 0 || _paymentMethod == 1, "invalid payment method");
-        bytes32 preimage = generatePreimage(_paymentNumber, _chargeAmountInWei, _paymentMethod);
-        bytes32 prefixed = generatePrefixedPreimage(preimage);
+        bytes32 image;
+        if (_prefixed) {
+            bytes32 preimage = generatePreimage(_paymentNumber, _chargeAmountInWei, _paymentMethod);
+            image = generatePrefixedPreimage(preimage);
+        } else {
+            image = generatePreimage(_paymentNumber, _chargeAmountInWei, _paymentMethod);
+        }
         // ensure that the preimages construct properly
-        require(prefixed == _h, "reconstructed preimage does not match");
+        require(image == _h, "reconstructed preimage does not match");
         address signer = ecrecover(_h, _v, _r, _s);
         // ensure that we actually signed this message
         require(signer == SIGNER, "recovered signer does not match");
