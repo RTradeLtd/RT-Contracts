@@ -2,7 +2,7 @@ package signer
 
 import (
 	"crypto/ecdsa"
-	"encoding/hex"
+	"errors"
 	"io/ioutil"
 	"math/big"
 
@@ -21,10 +21,10 @@ type PaymentSigner struct {
 }
 
 type SignedMessage struct {
-	H string `json:"h"`
-	R string `json:"r"`
-	S string `json:"s"`
-	V uint8  `json:"v"`
+	H [32]byte `json:"h"`
+	R [32]byte `json:"r"`
+	S [32]byte `json:"s"`
+	V uint8    `json:"v"`
 }
 
 // GeneratePaymentSigner is used to generate our helper struct for signing payments
@@ -53,11 +53,30 @@ func (ps *PaymentSigner) GenerateSignedPaymentMessageNoPrefix(ethAddress common.
 	if err != nil {
 		return nil, err
 	}
+	var h, r, s [32]byte
+	for k := range hashToSign {
+		h[k] = hashToSign[k]
+	}
+	if len(h) > 32 || len(h) < 32 {
+		return nil, errors.New("failed to parse h")
+	}
+	for k := range sig[0:32] {
+		r[k] = sig[k]
+	}
+	if len(r) > 32 || len(r) < 32 {
+		return nil, errors.New("failed to parse r")
+	}
+	for k := range sig[32:64] {
+		s[k] = sig[k]
+	}
+	if len(s) > 32 || len(r) < 32 {
+		return nil, errors.New("failed to parse s")
+	}
 	msg := &SignedMessage{
-		H: hex.EncodeToString(hashToSign),
-		R: hex.EncodeToString(sig[0:32]),
-		S: hex.EncodeToString(sig[32:64]),
-		V: uint8(sig[64]) + 1,
+		H: h,
+		R: r,
+		S: s,
+		V: uint8(sig[64]) + 27,
 	}
 	return msg, nil
 }
