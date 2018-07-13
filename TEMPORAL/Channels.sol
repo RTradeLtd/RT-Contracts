@@ -123,6 +123,7 @@ contract Channels is Administration {
         openedChannel(_channelOpener)
         returns (bool)
     {
+        require(_paymentNumber > channels[_channelOpener].numberOfPayments, "invalid payment number, less than what is in storage");
         bytes32 image;
         if (_prefixed) {
             image = generatePreimage(_channelOpener, _amount, _paymentNumber);
@@ -135,6 +136,7 @@ contract Channels is Administration {
         require(signer == _channelOpener, "recovered signer is not channel opener");
         require(channels[_channelOpener].balance >= _amount, "not enough channel balance");
         channels[_channelOpener].balance = channels[_channelOpener].balance.sub(_amount);
+        channels[_channelOpener].numberOfPayments = _paymentNumber;
         require(RTI.transfer(msg.sender, _amount), "failed to withdraw funds");
         return true;
     }
