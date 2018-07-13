@@ -142,6 +142,20 @@ contract Channels is Administration {
         return true;
     }
 
+    // allows channel opener to replenish the channel balance
+    // do note that this will "reset" the last withdrawal date
+    function depositFundsIntoChannel(
+        uint256 _amount)
+        public
+        openedChannel(msg.sender)
+        returns (bool)
+    {
+        channels[msg.sender].balance = channels[msg.sender].balance.add(_amount);
+        channels[msg.sender].lastWithdrawal = now;
+        require(RTI.transferFrom(msg.sender, address(this), _amount), "transfer from failed, most likely needs approval");
+        return true;
+    }
+
     function generatePreimage(
         address _channelOpener,
         uint256 _chargeAmountInWei,
