@@ -137,6 +137,7 @@ contract Channels is Administration {
         require(channels[_channelOpener].balance >= _amount, "not enough channel balance");
         channels[_channelOpener].balance = channels[_channelOpener].balance.sub(_amount);
         channels[_channelOpener].numberOfPayments = _paymentNumber;
+        channels[_channelOpener].lastWithdrawal = now;
         require(RTI.transfer(msg.sender, _amount), "failed to withdraw funds");
         return true;
     }
