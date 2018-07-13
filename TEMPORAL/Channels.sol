@@ -74,7 +74,7 @@ contract Channels is Administration {
         // prevent deployments if recipient is not set
         require(RECIPIENT != address(0), "recipient not set");
         // prevent deployments if the admin is the recipient
-        require(admin != RECIPIENT, "admin can't be the recipient");
+        require(msg.sender != RECIPIENT, "admin can't be the recipient");
         admin = msg.sender;
     }
 
@@ -133,7 +133,7 @@ contract Channels is Administration {
         require(image == _h, "constructed preimage does not match hash");
         address signer = ecrecover(_h, _v, _r, _s);
         require(signer == _channelOpener, "recovered signer is not channel opener");
-        require(_amount >= channels[_channelOpener].balance);
+        require(channels[_channelOpener].balance >= _amount, "not enough channel balance");
         channels[_channelOpener].balance = channels[_channelOpener].balance.sub(_amount);
         require(RTI.transfer(msg.sender, _amount), "failed to withdraw funds");
         return true;
