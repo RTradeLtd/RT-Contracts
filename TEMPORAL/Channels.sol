@@ -142,6 +142,30 @@ contract Channels is Administration {
         return true;
     }
 
+    function verifyImageAndSigner(
+        address _channelOpener,
+        uint256 _amount,
+        uint256 _paymentNumber,
+        bool    _prefixed,
+        bytes32 _h,
+        uint8   _v,
+        bytes32 _r,
+        bytes32 _s)
+        public
+        view
+        returns (bool)
+    {
+        bytes32 image;
+        if (_prefixed) {
+            image = generatePreimage(_channelOpener, _amount, _paymentNumber);
+            image = generatePrefixedPreimage(image);
+        } else {
+            image = generatePreimage(_channelOpener, _amount, _paymentNumber);
+        }
+        require(image == _h, "reconstructed image does not match");
+        return _channelOpener == ecrecover(_h, _v, _r, _s);
+    }
+
     // allows channel opener to replenish the channel balance
     // do note that this will "reset" the last withdrawal date
     function depositFundsIntoChannel(
