@@ -81,8 +81,6 @@ func (ps *PaymentSigner) GenerateSignedPaymentMessagePrefixed(ethAddress common.
 		S: s,
 		V: uint8(sig[64]) + 27,
 	}
-	// Here we do an off-chain validation to ensure that when validated on-chain the transaction won't rever
-	// however for some reason, the data isn't validating on-chain
 	pub := ps.Key.PublicKey
 	compressedKey := crypto.CompressPubkey(&pub)
 	valid := crypto.VerifySignature(compressedKey, hashPrefixed, sig[0:64])
