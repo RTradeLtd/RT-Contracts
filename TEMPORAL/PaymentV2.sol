@@ -17,8 +17,8 @@ contract Payments {
     bytes constant private PREFIX = "\x19Ethereum Signed Message:\n32";
     // this is the address we use to sign payments
     address constant public SIGNER = 0x7E4A2359c745A982a54653128085eAC69E446DE1;
-    address constant public TOKENADDRESS = address(0);
-    address constant public HOTWALLET = address(0);
+    address constant public TOKENADDRESS = 0x185ae6A87BBB02097923e859D742747Bb979Ae9a;
+    address constant public HOTWALLET = 0x7E4A2359c745A982a54653128085eAC69E446DE1;
     RTCoinInterface constant public RTI = RTCoinInterface(TOKENADDRESS);
 
     // PaymentState will keep track of the state of a payment, nil means we havent seen th payment before

@@ -9,6 +9,7 @@ import (
 
 	signer "./signer"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -33,47 +34,101 @@ func main() {
 
 	_, err = bind.WaitDeployed(context.Background(), client, tx)
 	if err != nil {
-		log.Fatalf("Error waiting for transaction to be mined %v", err)
+		log.Fatal(err)
 	}
 
-	sAddr, err := contract.SIGNER(nil)
+	rtc, err := NewRTCoin(common.HexToAddress("0x185ae6A87BBB02097923e859D742747Bb979Ae9a"), client)
 	if err != nil {
-		log.Fatalf("Failed to retrieve signer address %v", err)
+		log.Fatal(err)
+	}
+	fmt.Println("approving payments contract")
+	amt := new(big.Int).Mul(big.NewInt(1000000000000000000), big.NewInt(1000000000000000000))
+	tx, err = rtc.Approve(auth, paymentsADDR, amt)
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	if sAddr != auth.From {
-		log.Fatal("signer addr is not equal to the current account")
-	}
-
-	fmt.Println("Payments contract address", paymentsADDR.String())
-	// read our key
 	ps, err := signer.GeneratePaymentSigner(keyFile, keyPass)
 	if err != nil {
-		log.Fatalf("Error generating payment signer %v", err)
+		log.Fatal(err)
 	}
 	method := uint8(0)
-	number := big.NewInt(100)
-	amount := big.NewInt(10)
+	number := big.NewInt(0)
+	amount := big.NewInt(1000000000000000000)
 	msg, err := ps.GenerateSignedPaymentMessagePrefixed(auth.From, method, number, amount)
 	if err != nil {
-		log.Fatalf("Error signing payment message %v", err)
+		log.Fatal(err)
 	}
-
-	fmt.Printf("%+v\n", msg)
-
-	valid, err := contract.VerifyImages(nil, msg.H, number, method, amount, true)
+	oldNumPayments, err := contract.NumPayments(nil, auth.From)
 	if err != nil {
-		log.Fatalf("failed to verify images %v", err)
+		log.Fatal(err)
 	}
-	fmt.Println("Images are valid: ", valid)
-	fmt.Println(msg.V)
-	validSigner, err := contract.VerifySigner(nil, msg.H, msg.V, msg.R, msg.S, number, method, amount, true)
+	fmt.Println("Number of payments", oldNumPayments)
+	tx, err = contract.MakePayment(auth, msg.H, msg.V, msg.R, msg.S, number, method, amount, true)
 	if err != nil {
-		log.Fatalf("failed to verify signer %v", err)
+		log.Fatal(err)
 	}
+	rcpt, err := bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%+v\n", rcpt)
+	numPayments, err := contract.NumPayments(nil, auth.From)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("number of payments", numPayments)
+	if oldNumPayments.Cmp(numPayments) != 0 {
+		log.Fatal("old number of payments and new number of payments are equal, this should not be")
+	}
+	/*
+		_, err = bind.WaitDeployed(context.Background(), client, tx)
+		if err != nil {
+			log.Fatalf("Error waiting for transaction to be mined %v", err)
+		}
 
-	if !validSigner {
-		log.Fatalf("signature is not valid")
-	}
-	fmt.Println("signer recovered from signature matches")
+		sAddr, err := contract.SIGNER(nil)
+		if err != nil {
+			log.Fatalf("Failed to retrieve signer address %v", err)
+		}
+
+		if sAddr != auth.From {
+			log.Fatal("signer addr is not equal to the current account")
+		}
+
+		fmt.Println("Payments contract address", paymentsADDR.String())
+		// read our key
+		ps, err := signer.GeneratePaymentSigner(keyFile, keyPass)
+		if err != nil {
+			log.Fatalf("Error generating payment signer %v", err)
+		}
+		method := uint8(0)
+		number := big.NewInt(100)
+		amount := big.NewInt(10)
+		msg, err := ps.GenerateSignedPaymentMessagePrefixed(auth.From, method, number, amount)
+		if err != nil {
+			log.Fatalf("Error signing payment message %v", err)
+		}
+
+		fmt.Printf("%+v\n", msg)
+
+		valid, err := contract.VerifyImages(nil, msg.H, number, method, amount, true)
+		if err != nil {
+			log.Fatalf("failed to verify images %v", err)
+		}
+		fmt.Println("Images are valid: ", valid)
+		fmt.Println(msg.V)
+		validSigner, err := contract.VerifySigner(nil, msg.H, msg.V, msg.R, msg.S, number, method, amount, true)
+		if err != nil {
+			log.Fatalf("failed to verify signer %v", err)
+		}
+
+		if !validSigner {
+			log.Fatalf("signature is not valid")
+		}
+		fmt.Println("signer recovered from signature matches")*/
 }
