@@ -10,7 +10,7 @@ contract MinerValidator {
     uint256 constant public SUBMISSIONREWARD = 1;
     uint256 constant public BLOCKREWARD = 1;
     uint256 constant public MINWITHDRAWAL = 1;
-    address constant public TOKENADDRESS = address(0);
+    address constant public TOKENADDRESS = 0x185ae6A87BBB02097923e859D742747Bb979Ae9a;
     RTCoinInterface constant public RTI = RTCoinInterface(TOKENADDRESS);
 
     struct RewardStruct {

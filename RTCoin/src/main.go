@@ -22,6 +22,71 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	auth, err := bind.NewTransactor(strings.NewReader(key), keyPass)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("deploying RTC")
+	// deploy RTC
+	rtcADDR, tx, rtc, err := DeployRTCoin(auth, client)
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = bind.WaitDeployed(context.Background(), client, tx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("RTC Contract Address is", rtcADDR.String())
+
+	fmt.Println("deploying merged miner validator")
+	// deploy the validator
+	validatorADDR, tx, validator, err := DeployValidator(auth, client)
+	if err != nil {
+		fmt.Println("failed to deploy merged miner validator")
+		log.Fatal(err)
+	}
+	fmt.Println("validator address is", validatorADDR.String())
+	_, err = bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("setting merged miner validator on RTC")
+	tx, err = rtc.SetMergedMinerValidator(auth, validatorADDR)
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		fmt.Println("error setting merged miner validator")
+		log.Fatal(err)
+	}
+	addr, err := rtc.MergedMinerValidator(nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if addr != validatorADDR {
+		log.Fatal("set validator address on rtc does not match deployed contract addr")
+	}
+	fmt.Println("successfully set merged miner validator")
+	fmt.Println("setting block")
+	tx, err = validator.SubmitBlock(auth)
+	if err != nil {
+		log.Fatal(err)
+	}
+	time.Sleep(time.Second * 1)
+	fmt.Println("setting block")
+	tx, err = validator.SubmitBlock(auth)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+/*
+func main() {
+	client, err := ethclient.Dial(ipcFile)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	auth, err := bind.NewTransactor(strings.NewReader(key), keyPass)
 	if err != nil {
@@ -140,7 +205,7 @@ func main() {
 		log.Fatal(err)
 	}
 }
-
+*/
 // ConvertNumberToBaseWei is used to take a number, and multiply it by 10^18
 func ConvertNumberToBaseWei(num *big.Int) *big.Int {
 	exp := new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
