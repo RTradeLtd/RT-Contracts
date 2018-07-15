@@ -68,6 +68,18 @@ func main() {
 		log.Fatal("set validator address on rtc does not match deployed contract addr")
 	}
 	fmt.Println("successfully set merged miner validator")
+	amt := new(big.Int).Mul(big.NewInt(1000000000000000000), big.NewInt(1000000000000000000))
+	// we need to deposit coins into the merged mining contract
+	tx, err = rtc.Transfer(auth, validatorADDR, amt)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("waiting for transfer transaction to be mined")
+	_, err = bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		fmt.Println("error sending tokens")
+		log.Fatal(err)
+	}
 	fmt.Println("setting block")
 	tx, err = validator.SubmitBlock(auth)
 	if err != nil {
