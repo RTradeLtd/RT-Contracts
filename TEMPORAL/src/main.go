@@ -42,7 +42,7 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println("approving payments contract")
-	amt := new(big.Int).Mul(big.NewInt(1000000000000000000), big.NewInt(1000000000000000000))
+	amt := new(big.Int).Mul(big.NewInt(1000000000000000000), big.NewInt(10))
 	tx, err = rtc.Approve(auth, paymentsADDR, amt)
 	if err != nil {
 		log.Fatal(err)
