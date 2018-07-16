@@ -62,18 +62,32 @@ func main() {
 		log.Fatal(err)
 	}
 
-	dateOne := time.Now().Add(time.Hour * 10000).Unix()
+	dateOne := time.Now().Add(time.Minute * 1).Unix()
 	dateOneBig := big.NewInt(dateOne)
 	amountBig := big.NewInt(100000000000)
 	tx, err = vesting.AddVest(auth, auth.From, amountBig, []*big.Int{dateOneBig}, []*big.Int{amountBig})
 	if err != nil {
 		log.Fatal(err)
 	}
-	rcpt, err := bind.WaitMined(context.Background(), client, tx)
+	_, err = bind.WaitMined(context.Background(), client, tx)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("%+v\n", rcpt)
+	// sleep for 2 minutes, allowing enough time to pass to withdraw vested tokens
+	time.Sleep(time.Minute * 2)
+	tx, err = vesting.WithdrawVestedTokens(auth, big.NewInt(0))
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	vests, err := vesting.Vests(nil, auth.From)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%+v\n", vests)
 }
 
 /* validator
