@@ -81,6 +81,8 @@ contract Vesting {
         return true;
     }
 
+
+    // If attempting to withdraw the last available vesting allocation, please withdraw all other allocationsfirst
     function withdrawVestedTokens(
         uint256 _vestIndex)
         public

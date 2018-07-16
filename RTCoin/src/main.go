@@ -63,9 +63,12 @@ func main() {
 	}
 
 	dateOne := time.Now().Add(time.Minute * 1).Unix()
+	dateTwo := time.Now().Add(time.Minute * 2).Unix()
 	dateOneBig := big.NewInt(dateOne)
+	dateTwoBig := big.NewInt(dateTwo)
 	amountBig := big.NewInt(100000000000)
-	tx, err = vesting.AddVest(auth, auth.From, amountBig, []*big.Int{dateOneBig}, []*big.Int{amountBig})
+	totalBig := new(big.Int).Mul(amountBig, big.NewInt(2))
+	tx, err = vesting.AddVest(auth, auth.From, totalBig, []*big.Int{dateOneBig, dateTwoBig}, []*big.Int{amountBig, amountBig})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -74,8 +77,8 @@ func main() {
 		log.Fatal(err)
 	}
 	// sleep for 2 minutes, allowing enough time to pass to withdraw vested tokens
-	time.Sleep(time.Minute * 2)
-	tx, err = vesting.WithdrawVestedTokens(auth, big.NewInt(0))
+	time.Sleep(time.Minute * 3)
+	tx, err = vesting.WithdrawVestedTokens(auth, big.NewInt(1))
 	if err != nil {
 		log.Fatal(err)
 	}
