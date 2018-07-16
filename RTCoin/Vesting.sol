@@ -10,7 +10,7 @@ This contract is used to handle vesting of RTC tokens
 contract Vesting {
     using SafeMath for uint256;
 
-    address constant public TOKENADDRESS = address(0);
+    address constant public TOKENADDRESS = 0xB8fe3B2C83014566733B766a27d94CB9AC167Dc6;
     RTCoinInterface constant public RTI = RTCoinInterface(TOKENADDRESS);
 
     enum VestState {nil, vesting, vested}
