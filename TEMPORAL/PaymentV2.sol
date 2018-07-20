@@ -7,20 +7,26 @@ import "../Math/SafeMath.sol";
 This contract is used to facilitate payments for file uploads, or content pins through TEMPORAL.
 It is inteded to be utilized by infrequent uploaders, who don't need a payment channel, but want smart contract validated payments.
 The way it works is that when attempting to upload a file, or pin content to TEMPORAL, the size of the data is calculated, and a price in USD is determined based
-on how may months you want the content in our system for. TEMPORAL will generate valid signature data, which when submitted to a smart contract will be validated.
-IF validation passes the specified amount of RTC or ETH is taken from your account, and sent to one of our hot wallets. After transaction confirmation, the data
-will be injected into our system.
+on how may months you want the content in our system for, this can then be paid in RTC or ETH, whichever of the two you desire. 
+TEMPORAL will generate valid signature data, which when submitted to a smart contract will be validated. IF validation passes, the specified amount of RTC or ETH is taken from your account, and sent to one of our hot wallets. 
+After transaction confirmation, the data will be injected into our system.
 */
 
 /** @title This contract is used to handle payments for TEMPORAL */
 contract Payments {
     using SafeMath for uint256;    
+
+    // we mark as constant private to save gas
     bytes constant private PREFIX = "\x19Ethereum Signed Message:\n32";
-    // this is the address we use to sign payments
-    address constant public SIGNER = 0x7E4A2359c745A982a54653128085eAC69E446DE1;
-    address constant public TOKENADDRESS = 0x185ae6A87BBB02097923e859D742747Bb979Ae9a;
-    address constant public HOTWALLET = 0x7E4A2359c745A982a54653128085eAC69E446DE1;
-    RTCoinInterface constant public RTI = RTCoinInterface(TOKENADDRESS);
+    // these addresses will need to be changed before deployment, and validated after deployment
+    // we hardcode them for security reasons to avoid any possible risk of compromised accounts being able to change anything on this contract.
+    // in the event that one of the addresses is compromised, the contract will be self destructed
+    address constant private SIGNER = 0x7E4A2359c745A982a54653128085eAC69E446DE1;
+    address constant private TOKENADDRESS = 0x185ae6A87BBB02097923e859D742747Bb979Ae9a;
+    address constant private HOTWALLET = 0x7E4A2359c745A982a54653128085eAC69E446DE1;
+    RTCoinInterface constant private RTI = RTCoinInterface(TOKENADDRESS);
+
+    address public admin;
 
     // PaymentState will keep track of the state of a payment, nil means we havent seen th payment before
     enum PaymentState{ nil, paid }
@@ -42,6 +48,15 @@ contract Payments {
     modifier validPayment(uint256 _paymentNumber) {
         require(payments[msg.sender][_paymentNumber].state == PaymentState.nil, "payment already made");
         _;
+    }
+
+    modifier onlyAdmin() {
+        require(msg.sender == admin);
+        _;
+    }
+
+    constructor() public {
+        admin = msg.sender;
     }
 
     /** @dev Used to submit a payment for TEMPORAL uploads
@@ -89,6 +104,7 @@ contract Payments {
         });
         payments[msg.sender][_paymentNumber] = ps;
         numPayments[msg.sender] = numPayments[msg.sender].add(1);
+        // if they are opting to pay in eth run this block of code, otherwise make the payment in RTC
         if (PaymentMethod(_paymentMethod) == PaymentMethod.ETH) {
             require(msg.value == _chargeAmountInWei, "msg.value does not equal charge amount");
             emit PaymentMade(msg.sender, _paymentNumber, _paymentMethod, _chargeAmountInWei);
@@ -184,5 +200,12 @@ contract Payments {
      */
     function generatePrefixedPreimage(bytes32 _preimage) internal pure returns (bytes32)  {
         return keccak256(abi.encodePacked(PREFIX, _preimage));
+    }
+
+    /** @dev Used to destroy the contract
+     */
+    function goodNightSweetPrince() public onlyAdmin returns (bool) {
+        selfdestruct(msg.sender);
+        return true;
     }
 }
