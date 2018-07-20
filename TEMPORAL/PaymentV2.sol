@@ -12,6 +12,7 @@ IF validation passes the specified amount of RTC or ETH is taken from your accou
 will be injected into our system.
 */
 
+/** @title This contract is used to handle payments for TEMPORAL */
 contract Payments {
     using SafeMath for uint256;    
     bytes constant private PREFIX = "\x19Ethereum Signed Message:\n32";
@@ -43,6 +44,16 @@ contract Payments {
         _;
     }
 
+    /** @dev Used to submit a payment for TEMPORAL uploads
+        * @param _h This is the message hash that has been signed
+        * @param _v This is pulled from the signature
+        * @param _r This is pulled from the signature
+        * @param _s This is pulled from the signature
+        * @param _paymentNumber This is the current payments number (how many payments the user has submitted)
+        * @param _paymentMethod This is the payment method (RTC, ETH) being used
+        * @param _chargeAmountInWei This is how much the user is to be charged
+        * @param _prefixed This indicates whether or not the signature was generated using ERC191 standards
+     */
     function makePayment(
         bytes32 _h,
         uint8   _v,
@@ -89,6 +100,13 @@ contract Payments {
         return true;
     }
 
+    /** @dev This is a helper function used to verify whether or not the provided arguments can reconstruct the message hash
+        * @param _h This is the message hash which is signed, and will be reconstructed
+        * @param _paymentNumber This is the number of payment
+        * @param _paymentMethod This is the payment method (RTC, ETH) being used
+        * @param _chargeAmountInWei This is the amount the user is to be charged
+        * @param _prefixed This indicates whether the message was signed according to ERC191
+     */
     function verifyImages(
         bytes32 _h,
         uint256 _paymentNumber,
@@ -110,6 +128,16 @@ contract Payments {
         return image == _h;
     }
 
+    /** @dev This is a helper function which can be used to verify the signer of a message
+        * @param _h This is the message hash that is signed
+        * @param _v This is pulled from the signature
+        * @param _r This is pulled from the signature
+        * @param _s This is pulled from the signature
+        * @param _paymentNumber This is the payment number of this particular payment
+        * @param _paymentMethod This is the payment method (RTC, ETH) being used
+        * @param _chargeAmountInWei This is the amount hte user is to be charged
+        * @param _prefixed This indicates whether or not the message was signed using ERC191
+     */
     function verifySigner(
         bytes32 _h,
         uint8   _v,
@@ -135,17 +163,25 @@ contract Payments {
         return ecrecover(_h, _v, _r, _s) == SIGNER;
     }
 
+    /** @dev This is a helper function used to generate a non ERC191 signed message hash
+        * @param _paymentNumber This is the payment number of this payment
+        * @param _chargeAmountInWei This is the amount the user is to be charged
+        * @param _paymentMethod This is the payment method (RTC, ETH) being used
+     */
     function generatePreimage(
         uint256 _paymentNumber,
         uint256 _chargeAmountInWei,
         uint8   _paymentMethod)
         internal
         view
-        returns (bytes32 preimage)
+        returns (bytes32)
     {
         return keccak256(abi.encodePacked(msg.sender, _paymentNumber, _paymentMethod, _chargeAmountInWei));
     }
 
+    /** @dev This is a helper function that prepends the ERC191 signed message prefix
+        * @param _preimage This is the reconstructed message hash before being prepened with the ERC191 prefix
+     */
     function generatePrefixedPreimage(bytes32 _preimage) internal pure returns (bytes32)  {
         return keccak256(abi.encodePacked(PREFIX, _preimage));
     }

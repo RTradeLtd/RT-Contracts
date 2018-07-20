@@ -31,7 +31,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error creating contract deployment transaction %v", err)
 	}
-
+	fmt.Println("payment contract address ", paymentsADDR.String())
 	_, err = bind.WaitDeployed(context.Background(), client, tx)
 	if err != nil {
 		log.Fatal(err)
@@ -42,7 +42,7 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println("approving payments contract")
-	amt := new(big.Int).Mul(big.NewInt(1000000000000000000), big.NewInt(10))
+	amt := new(big.Int).Mul(big.NewInt(1000000000000000000), big.NewInt(1000000000000000000))
 	tx, err = rtc.Approve(auth, paymentsADDR, amt)
 	if err != nil {
 		log.Fatal(err)
@@ -72,6 +72,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println("Tx hash", tx.Hash().String())
 	rcpt, err := bind.WaitMined(context.Background(), client, tx)
 	if err != nil {
 		log.Fatal(err)
@@ -82,7 +83,7 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println("number of payments", numPayments)
-	if oldNumPayments.Cmp(numPayments) != 0 {
+	if oldNumPayments.Cmp(numPayments) == 0 {
 		log.Fatal("old number of payments and new number of payments are equal, this should not be")
 	}
 	/*
