@@ -3,57 +3,82 @@ pragma solidity 0.4.24;
 import "../Math/SafeMath.sol";
 import "../Interfaces/RTCoinInterface.sol";
 
-/*
-This contract is used to handle vesting of RTC tokens
-*/
-
+/** @title This contract is used to handle vesting of the RTC token */
 contract Vesting {
     using SafeMath for uint256;
 
+    // these will need to be changed prior to deployment
     address constant public TOKENADDRESS = 0xB8fe3B2C83014566733B766a27d94CB9AC167Dc6;
     RTCoinInterface constant public RTI = RTCoinInterface(TOKENADDRESS);
 
+    address public admin;
+
+    // keeps track of the state of a vest
     enum VestState {nil, vesting, vested}
 
     struct Vest {
+        // total amount of coins vesting
         uint256 totalVest;
+        // the times at which the tokens will unlock
         uint256[] releaseDates;
+        // the amount of tokens to unlock at each interval
         uint256[] releaseAmounts;
         VestState state;
+        // keeps track of what tokens have been unlocked
         mapping (uint256 => bool) claimed;
     }
 
+    // Keeps track of token vests
     mapping (address => Vest) public vests;
 
+    // make sure that they are using a valid vest index
     modifier validIndex(uint256 _vestIndex) {
         require(_vestIndex < vests[msg.sender].releaseDates.length);
         _;
     }
 
+    // make sure that the claim date has been passed
     modifier pastClaimDate(uint256 _vestIndex) {
         require(now >= vests[msg.sender].releaseDates[_vestIndex]);
         _;
     }
 
+    // make sure that the vest is not yet claimed
     modifier unclaimedVest(uint256 _vestIndex) {
         require(!vests[msg.sender].claimed[_vestIndex]);
         _;
     }
 
+    // make sure that the vest is active
     modifier activeVester() {
         require(vests[msg.sender].state == VestState.vesting);
         _;
     }
 
+    // make sure that the user has no active vests going on
     modifier nonActiveVester(address _vester) {
         require(vests[_vester].state == VestState.nil);
+        _;
+    }
+
+    modifier onlyAdmin() {
+        require(msg.sender == admin);
         _;
     }
 
     constructor() public {
         // prevent deployments if not properly setup
         require(TOKENADDRESS != address(0), "token address not set");
+        admin = msg.sender;
     }
+
+    /** @dev Used to deposit a vest for someone
+        * Yes we are looping, however we have the ability to ensure that the block gas limit will never be reached
+        * @param _vester This is the person for whom vests are being enabled
+        * @param _totalAmountToVest This is the total amount of coins being vested
+        * @param _releaseDates These are the dates at which tokens will be unlocked
+        * @param _releaseAmounts these are the amounts of tokens to be unlocked at each date
+     */
     function addVest(
         address _vester,
         uint256 _totalAmountToVest,
@@ -61,6 +86,7 @@ contract Vesting {
         uint256[] _releaseAmounts)
         public
         nonActiveVester(_vester)
+        onlyAdmin
         returns (bool)
     {
         require(_releaseDates.length == _releaseAmounts.length, "array lengths are not equal");
@@ -82,7 +108,11 @@ contract Vesting {
     }
 
 
-    // If attempting to withdraw the last available vesting allocation, please withdraw all other allocationsfirst
+    /** @dev Used to withdraw unlocked vested tokens
+        * Yes we are looping, but as we can control the total number of loops, etc.. we can ensure that the block gas limit will never be reached
+        * @notice IF YOU ARE WITHDRAWING THE LAST VEST (LAST INDEX) YOU MUST HAVE WITHDRAWN ALL OTHER VESTS FIRST OR THE TX WILL FAIL
+        * @param _vestIndex the particular vest to be withdrawn
+     */
     function withdrawVestedTokens(
         uint256 _vestIndex)
         public
@@ -92,8 +122,6 @@ contract Vesting {
         pastClaimDate(_vestIndex)
         returns (bool)
     {
-        // mark this particular vest as claimed
-        vests[msg.sender].claimed[_vestIndex] = true;
         // if this is the last vest, make sure all others have been claimed and then mark as vested
         if (_vestIndex == vests[msg.sender].releaseAmounts.length.sub(1)) {
             bool check;
@@ -109,11 +137,11 @@ contract Vesting {
                 }
                 check = true;
             }
-            // if check is true, this means that all claims have been made and we can mark the vest as having been complete
-            if (check) {
-                vests[msg.sender].state = VestState.vested;
-            }
+            // if they are attempting to withdraw the last vest, this must be true or else the tx will revert
+            require(check, "not all vests have been withdrawn before attempting to withdraw final vest");
         }
+        // mark this particular vest as claimed
+        vests[msg.sender].claimed[_vestIndex] = true;
         uint256 amount = vests[msg.sender].releaseAmounts[_vestIndex];
         require(RTI.transfer(msg.sender, amount), "failed to transfer");
         return true;
