@@ -5,19 +5,25 @@ import "../Math/SafeMath.sol";
 import "../Interfaces/ERC20Interface.sol";
 import "../Interfaces/StakeInterface.sol";
 
+/** @title RTC Token Contract */
 contract RTCoin is Administration {
 
     using SafeMath for uint256;
 
-    uint256 constant public INITIALSUPPLY = 61000000000000000000000000;
+    // this is the initial supply of tokens, 61.6 Million
+    uint256 constant public INITIALSUPPLY = 61600000000000000000000000;
 
+    // this is the interface that allows interaction with the staking contract
     StakeInterface public stake;
+    // this is the address of the staking contract
     address public  stakeContractAddress;
+    // This is the address of the merged mining contract, not yet developed
     address public  mergedMinerValidatorAddress;
     string  public  name;
     string  public  symbol;
     uint256 public  totalSupply;
     uint8   public  decimals;
+    // allows transfers to be frozen
     bool    public  transfersFrozen;
 
     mapping (address => uint256) public balances;
@@ -43,28 +49,37 @@ contract RTCoin is Administration {
         _;
     }
 
+    // makes sure that only the stake contract, or merged miner validator contract can mint coins
     modifier onlyMinters() {
-        require(msg.sender == stakeContractAddress || msg.sender == mergedMinerValidatorAddress);
-        _;
+        if (mergedMinerValidatorAddress != address(0)) {
+            require(msg.sender == stakeContractAddress || msg.sender == mergedMinerValidatorAddress);
+            _;
+        } else {
+            require(msg.sender == stakeContractAddress);
+            _;
+        }
     }
 
     constructor() public {
         name = "RTCoin";
         symbol = "RTC";
         decimals = 18;
-        // 88il in wei
         totalSupply = INITIALSUPPLY;
         balances[msg.sender] = totalSupply;
         emit Transfer(address(0), msg.sender, totalSupply);
     }
 
+    /** @dev Used to transfer tokens
+        * @param _recipient This is the recipient of the transfer
+        * @param _amount This is the amount of tokens to send
+     */
     function transfer(
         address _recipient,
         uint256 _amount
     )
         public
         transfersNotFrozen
-        returns (bool transferred)
+        returns (bool)
     {
         // check that the sender has a valid balance
         require(balances[msg.sender] >= _amount);
@@ -74,6 +89,10 @@ contract RTCoin is Administration {
         return true;
     }
 
+    /** @dev Used to transfer tokens on behalf of someone else
+        @param _recipient This is the recipient of the transfer
+        @param _amount This is the amount of tokens to send
+     */
     function transferFrom(
         address _owner,
         address _recipient,
@@ -81,13 +100,12 @@ contract RTCoin is Administration {
     )
         public
         transfersNotFrozen
-        returns (bool transferredFrom)
+        returns (bool)
     {
         // ensure owner has a valid balance
         require(balances[_owner] >= _amount);
         // ensure that the spender has a valid allowance
         require(allowed[_owner][msg.sender] >= _amount);
-        require(allowed[_owner][msg.sender].sub(_amount) >= 0);
         // reduce the allowance
         allowed[_owner][msg.sender] = allowed[_owner][msg.sender].sub(_amount);
         // reduce balance of owner
@@ -98,14 +116,17 @@ contract RTCoin is Administration {
         return true;
     }
 
+    /** @dev This is used to approve someone to send tokens on your behalf
+        @param _spender This is the person who can spend on your behalf
+        @param _amount This is the amount of tokens that they can spend
+     */
     function approve(
         address _spender,
         uint256 _amount
     )
         public
-        returns (bool approved)
+        returns (bool)
     {
-        require(_spender != address(0x0));
         require(_amount > 0);
         require(allowed[msg.sender][_spender].add(_amount) > allowed[msg.sender][_spender]);
         allowed[msg.sender][_spender] = allowed[msg.sender][_spender].add(_amount);
@@ -115,13 +136,18 @@ contract RTCoin is Administration {
 
     // NON STANDARD FUNCTIONS //
 
+    /** @dev This is used to set the merged miner validator contract
+        @param _mergedMinerValidator this is the address of the mergedmining contract
+     */
     function setMergedMinerValidator(address _mergedMinerValidator) external onlyAdmin returns (bool) {
         mergedMinerValidatorAddress = _mergedMinerValidator;
         emit MergedMinerValidatorSet(_mergedMinerValidator);
         return true;
     }
 
-
+    /** @dev This is used to set the staking contract
+        @param _contractAddress this is the address of the staking contract
+    */
     function setStakeContract(address _contractAddress) external onlyAdmin returns (bool) {
         // this prevents us from changing contracts while there are active stakes going on
         if (stakeContractAddress != address(0)) {
@@ -134,7 +160,11 @@ contract RTCoin is Administration {
     }
 
 
-    // This needs to be locked down so only the staking contract can invoke this function
+    /** @dev This is used to mint new tokens
+        * Can only be executed by the staking, and merged miner validator contracts
+        * @param _recipient This is the person who will received the mint tokens
+        * @param _amount This is the amount of tokens that they will receive and which will be generated
+     */
     function mint(
         address _recipient,
         uint256 _amount)
@@ -149,6 +179,11 @@ contract RTCoin is Administration {
         return true;
     }
 
+    /** @dev Allow us to transfer tokens that someone might've accidentally sent to this contract
+        @param _tokenAddress this is the address of the token contract
+        @param _recipient This is the address of the person receiving the tokens
+        @param _amount This is the amount of tokens to send
+     */
     function transferForeignToken(
         address _tokenAddress,
         address _recipient,
@@ -157,7 +192,7 @@ contract RTCoin is Administration {
         onlyAdmin
         returns (bool)
     {
-        // prevent sending of RTC token
+        // don't allow us to transfer RTC tokens
         require(_tokenAddress != address(this));
         ERC20Interface eI = ERC20Interface(_tokenAddress);
         require(eI.balanceOf(address(this)) >= _amount);
@@ -165,8 +200,10 @@ contract RTCoin is Administration {
         emit ForeignTokenTransfer(msg.sender, _recipient, _amount);
     }
     
-    //This will only ever have to be called in cases where a contract suicides and ether is forcably sent
-    // or if someone sends ehter to the address the contract will reside at before it is deployed
+    /** @dev Transfers eth that is stuck in this contract
+        * ETH can be sent to the address this contract resides at before the contract is deployed
+        * A contract can be suicided, forcefully sending ether to this contract
+     */
     function transferOutEth()
         public
         onlyAdmin
@@ -177,6 +214,8 @@ contract RTCoin is Administration {
         emit EthTransferOut(msg.sender, balance);
     }
 
+    /** @dev Used to freeze token transfers
+     */
     function freezeTransfers()
         public
         onlyAdmin
@@ -187,6 +226,8 @@ contract RTCoin is Administration {
         return true;
     }
 
+    /** @dev Used to thaw token transfers
+     */
     function thawTransfers()
         public
         onlyAdmin
@@ -200,6 +241,8 @@ contract RTCoin is Administration {
 
     /**GETTERS */
 
+    /** @dev Used to get the total supply
+     */
     function totalSupply()
         public
         view
@@ -208,6 +251,9 @@ contract RTCoin is Administration {
         return totalSupply;
     }
 
+    /** @dev Used to get the balance of a holder
+        * @param _holder The address of the token holder
+     */
     function balanceOf(
         address _holder
     )
@@ -218,6 +264,10 @@ contract RTCoin is Administration {
         return balances[_holder];
     }
 
+    /** @dev Used to get the allowance of someone
+        * @param _owner The address of the token owner
+        * @param _spender The address of thhe person allowed to spend funds on behalf of the owner
+     */
     function allowance(
         address _owner,
         address _spender
