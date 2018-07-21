@@ -1,8 +1,5 @@
 pragma solidity 0.4.24;
-
-/**
-RTCoin Interface
-*/
+pragma experimental "v0.5.0";
 
 interface RTCoinInterface {
     

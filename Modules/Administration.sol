@@ -1,15 +1,13 @@
 pragma solidity 0.4.24;
+pragma experimental "v0.5.0";
 
 contract Administration {
 
     address public owner;
     address public admin;
-    bool    public frozen;
 
-    mapping (address => bool) public moderators;
-
-    event AdminSet(address indexed _admin, bool indexed _adminSet);
-    event OwnershipTransferred(address indexed _previousOwner, address indexed _newOwner, bool indexed _ownershipTransferred);
+    event AdminSet(address _admin);
+    event OwnershipTransferred(address _previousOwner, address _newOwner);
 
     modifier onlyOwner() {
         require(msg.sender == owner);
@@ -18,11 +16,6 @@ contract Administration {
 
     modifier onlyAdmin() {
         require(msg.sender == owner || msg.sender == admin);
-        _;
-    }
-
-    modifier onlyPrivileged() {
-        require(msg.sender == owner || msg.sender == admin || moderators[msg.sender] == true);
         _;
     }
 
@@ -40,7 +33,7 @@ contract Administration {
     {
         require(_newAdmin != admin);
         admin = _newAdmin;
-        emit AdminSet(_newAdmin, true);
+        emit AdminSet(_newAdmin);
         return true;
     }
 
@@ -51,17 +44,9 @@ contract Administration {
         onlyOwner
         returns (bool)
     {
-        require(_newOwner != owner);
         owner = _newOwner;
-        emit OwnershipTransferred(msg.sender, _newOwner, true);
+        emit OwnershipTransferred(msg.sender, _newOwner);
         return true;
     }
 
-    function owner() external view returns (address) {
-        return owner;
-    }
-
-    function admin() external view returns (address) {
-        return admin;
-    }
 }
