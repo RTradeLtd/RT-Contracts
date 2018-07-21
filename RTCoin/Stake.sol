@@ -4,7 +4,8 @@ import "../Interfaces/RTCoinInterface.sol";
 import "../Interfaces/ERC20Interface.sol";
 import "../Math/SafeMath.sol";
 
-/** @title This contract is used to handle staking, and subsequently can increase RTC token supply */
+/// @title This contract is used to handle staking, and subsequently can increase RTC token supply
+/// @author Postables, RTrade Technologies Ltd
 contract Stake {
     using SafeMath for uint256;
 
@@ -124,7 +125,7 @@ contract Stake {
         admin = msg.sender;
     }
 
-    /** @dev Used to set the interface for the RTC token
+    /** @notice Used to set the interface for the RTC token
         * Only usable by contract admin
         * @param _contract This is the address of the RTC token contract
      */
@@ -136,7 +137,7 @@ contract Stake {
         return true;
     }
 
-    /** @dev Used to disable new stakes from being made
+    /** @notice Used to disable new stakes from being made
         * Only usable by contract admin
      */
     function disableNewStakes() public onlyAdmin returns (bool) {
@@ -144,9 +145,8 @@ contract Stake {
         return true;
     }
 
-    /** @dev Used to allow new stakes to be made
-        * For this to be enabled, the RTC token contract must be configured properly
-        * This means that it is configured to use this contract as the staking contract
+    /** @notice Used to allow new stakes to be made
+        * @dev For this to be enabled, the RTC token contract must be configured properly
      */
     function allowNewStakes() public onlyAdmin returns (bool) {
         newStakesAllowed = true;
@@ -154,8 +154,8 @@ contract Stake {
         return true;
     }
 
-    /** @dev Used by a staker to claim currently staked coins
-        * Can only be executed when at least one block has passed from the last execution
+    /** @notice Used by a staker to claim currently staked coins
+        * @dev Can only be executed when at least one block has passed from the last execution
         * @param _stakeNumber This is the particular stake to withdraw from
      */
     function mint(uint256 _stakeNumber) public validMint(_stakeNumber) returns (bool) {
@@ -177,8 +177,8 @@ contract Stake {
         return true;
     }
 
-    /** @dev Used by a staker to withdraw their initial stake
-        * Can only be executed after the specified block number, and unix timestamp has been passed
+    /** @notice Used by a staker to withdraw their initial stake
+        * @dev Can only be executed after the specified block number, and unix timestamp has been passed
         * @param _stakeNumber This is the particular stake to withdraw from
      */
     function withdrawInitialStake(uint256 _stakeNumber) public validInitialStakeRelease(_stakeNumber) returns (bool) {
@@ -197,9 +197,8 @@ contract Stake {
         return true;
     }
 
-    /** @dev This is used to deposit coins and start staking
-        * Staking must be enabled or this function will not execute
-        * Must deposit at least one RTC
+    /** @notice This is used to deposit coins and start staking with at least one RTC
+        * @dev Staking must be enabled or this function will not execute
         * @param _numRTC This is the number of RTC tokens to stake
      */
     function depositStake(uint256 _numRTC) public stakingEnabled(_numRTC) returns (bool) {
@@ -243,7 +242,7 @@ contract Stake {
 
     // UTILITY FUNCTIONS //
 
-    /** @dev This is a helper function used to calculate the parameters of a stake
+    /** @notice This is a helper function used to calculate the parameters of a stake
         * Will determine the block that the initial stake can be withdraw at
         * Will determine the time that the initial stake can be withdrawn at
         * Will determine the total number of RTC to be minted throughout hte stake
@@ -277,7 +276,7 @@ contract Stake {
         rewardPerBlock = totalCoinsMinted.div(BLOCKHOLDPERIOD);
     }
 
-    /** @dev This is a helper function used to calculate how many coins will be awarded in a given internal
+    /** @notice This is a helper function used to calculate how many coins will be awarded in a given internal
         * @param _stakeNumber This is the particular stake to calculate from
      */
     function calculateMint(uint256 _stakeNumber)
@@ -305,7 +304,7 @@ contract Stake {
         }
     }
 
-    /** @dev This is a helper function used to calculate the total number of tokens to be minted
+    /** @notice This is a helper function used to calculate the total number of tokens to be minted
         * @param _numRTC This is the number of RTC being staked
      */
     function calculateTotalCoinsMinted(uint256 _numRTC) internal pure returns (uint256 totalCoinsMinted) {
@@ -313,7 +312,7 @@ contract Stake {
         totalCoinsMinted = totalCoinsMinted.div(1 ether);
     }
 
-    /** @dev This is a helper function used to calculate how many blocks to mint coins for
+    /** @notice This is a helper function used to calculate how many blocks to mint coins for
         * @param _stakeNumber This is the stake to be used for calculations
      */
     function calculateCurrentBlock(uint256 _stakeNumber) internal view returns (uint256 currentBlock) {
@@ -325,15 +324,15 @@ contract Stake {
         }
     }
     
-    /** @dev This is a helper function used to get the total number of stakes a 
+    /** @notice This is a helper function used to get the total number of stakes a 
         * @param _staker This is the address of the stakee
      */
     function getStakeCount(address _staker) internal view returns (uint256) {
         return numberOfStakes[_staker];
     }
 
-    /** @dev This is a helper function that checks whether or not this contract can mint tokens
-        * This should only ever be false under extreme circumstances such as a potential vulnerability
+    /** @notice This is a helper function that checks whether or not this contract can mint tokens
+        * @dev This should only ever be false under extreme circumstances such as a potential vulnerability
      */
     function canMint() public view returns (bool) {
         require(RTI.stakeContract() == address(this), "rtc token contract is not set to use this contract as the staking contract");

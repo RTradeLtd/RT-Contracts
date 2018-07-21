@@ -3,16 +3,8 @@ pragma solidity 0.4.24;
 import "../Interfaces/RTCoinInterface.sol";
 import "../Math/SafeMath.sol";
 
-/*
-This contract is used to facilitate payments for file uploads, or content pins through TEMPORAL.
-It is inteded to be utilized by infrequent uploaders, who don't need a payment channel, but want smart contract validated payments.
-The way it works is that when attempting to upload a file, or pin content to TEMPORAL, the size of the data is calculated, and a price in USD is determined based
-on how may months you want the content in our system for, this can then be paid in RTC or ETH, whichever of the two you desire. 
-TEMPORAL will generate valid signature data, which when submitted to a smart contract will be validated. IF validation passes, the specified amount of RTC or ETH is taken from your account, and sent to one of our hot wallets. 
-After transaction confirmation, the data will be injected into our system.
-*/
-
-/** @title This contract is used to handle payments for TEMPORAL */
+/// @title TEMPORAL Payment Contract
+/// @author Postables, RTrade Technologies Ltd
 contract Payments {
     using SafeMath for uint256;    
 
@@ -59,7 +51,8 @@ contract Payments {
         admin = msg.sender;
     }
 
-    /** @dev Used to submit a payment for TEMPORAL uploads
+    /** @notice Used to submit a payment for TEMPORAL uploads
+        * @dev Can use ERC191 or non ERC191 signed messages
         * @param _h This is the message hash that has been signed
         * @param _v This is pulled from the signature
         * @param _r This is pulled from the signature
@@ -116,7 +109,7 @@ contract Payments {
         return true;
     }
 
-    /** @dev This is a helper function used to verify whether or not the provided arguments can reconstruct the message hash
+    /** @notice This is a helper function used to verify whether or not the provided arguments can reconstruct the message hash
         * @param _h This is the message hash which is signed, and will be reconstructed
         * @param _paymentNumber This is the number of payment
         * @param _paymentMethod This is the payment method (RTC, ETH) being used
@@ -144,7 +137,7 @@ contract Payments {
         return image == _h;
     }
 
-    /** @dev This is a helper function which can be used to verify the signer of a message
+    /** @notice This is a helper function which can be used to verify the signer of a message
         * @param _h This is the message hash that is signed
         * @param _v This is pulled from the signature
         * @param _r This is pulled from the signature
@@ -179,7 +172,7 @@ contract Payments {
         return ecrecover(_h, _v, _r, _s) == SIGNER;
     }
 
-    /** @dev This is a helper function used to generate a non ERC191 signed message hash
+    /** @notice This is a helper function used to generate a non ERC191 signed message hash
         * @param _paymentNumber This is the payment number of this payment
         * @param _chargeAmountInWei This is the amount the user is to be charged
         * @param _paymentMethod This is the payment method (RTC, ETH) being used
@@ -195,14 +188,14 @@ contract Payments {
         return keccak256(abi.encodePacked(msg.sender, _paymentNumber, _paymentMethod, _chargeAmountInWei));
     }
 
-    /** @dev This is a helper function that prepends the ERC191 signed message prefix
+    /** @notice This is a helper function that prepends the ERC191 signed message prefix
         * @param _preimage This is the reconstructed message hash before being prepened with the ERC191 prefix
      */
     function generatePrefixedPreimage(bytes32 _preimage) internal pure returns (bytes32)  {
         return keccak256(abi.encodePacked(PREFIX, _preimage));
     }
 
-    /** @dev Used to destroy the contract
+    /** @notice Used to destroy the contract
      */
     function goodNightSweetPrince() public onlyAdmin returns (bool) {
         selfdestruct(msg.sender);

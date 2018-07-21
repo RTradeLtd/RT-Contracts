@@ -1,10 +1,10 @@
 pragma solidity 0.4.24;
+pragma experimental "v0.5.0";
 
 import "../Math/SafeMath.sol";
 import "../Interfaces/RTCoinInterface.sol";
 
-/// @title This contract is used to handle vesting of the RTC token
-/// @author Postables, RTrade Technologies Ltd
+/** @title This contract is used to handle vesting of the RTC token */
 contract Vesting {
 
     using SafeMath for uint256;
@@ -74,9 +74,9 @@ contract Vesting {
         admin = msg.sender;
     }
 
-    /** @notice Used to deposit a vest for someone
+    /** @dev Used to deposit a vest for someone
+        * Yes we are looping, however we have the ability to ensure that the block gas limit will never be reached
         * Mythril will report an overflow here, however it is a false positive
-        * @dev Yes we are looping, however we have the ability to ensure that the block gas limit will never be reached
         * @param _vester This is the person for whom vests are being enabled
         * @param _totalAmountToVest This is the total amount of coins being vested
         * @param _releaseDates These are the dates at which tokens will be unlocked
@@ -112,8 +112,8 @@ contract Vesting {
     }
 
 
-    /** @notice Used to withdraw unlocked vested tokens
-        * @dev Yes we are looping, but as we can control the total number of loops, etc.. we can ensure that the block gas limit will never be reached
+    /** @dev Used to withdraw unlocked vested tokens
+        * Yes we are looping, but as we can control the total number of loops, etc.. we can ensure that the block gas limit will never be reached
         * @notice IF YOU ARE WITHDRAWING THE LAST VEST (LAST INDEX) YOU MUST HAVE WITHDRAWN ALL OTHER VESTS FIRST OR THE TX WILL FAIL
         * @param _vestIndex the particular vest to be withdrawn
      */

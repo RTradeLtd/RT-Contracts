@@ -5,7 +5,8 @@ import "../Math/SafeMath.sol";
 import "../Interfaces/ERC20Interface.sol";
 import "../Interfaces/StakeInterface.sol";
 
-/** @title RTC Token Contract */
+/// @title RTC Token Contract
+/// @author Postables, RTrade Technologies Ltd
 contract RTCoin is Administration {
 
     using SafeMath for uint256;
@@ -69,7 +70,7 @@ contract RTCoin is Administration {
         emit Transfer(address(0), msg.sender, totalSupply);
     }
 
-    /** @dev Used to transfer tokens
+    /** @notice Used to transfer tokens
         * @param _recipient This is the recipient of the transfer
         * @param _amount This is the amount of tokens to send
      */
@@ -89,9 +90,9 @@ contract RTCoin is Administration {
         return true;
     }
 
-    /** @dev Used to transfer tokens on behalf of someone else
-        @param _recipient This is the recipient of the transfer
-        @param _amount This is the amount of tokens to send
+    /** @notice Used to transfer tokens on behalf of someone else
+        * @param _recipient This is the recipient of the transfer
+        * @param _amount This is the amount of tokens to send
      */
     function transferFrom(
         address _owner,
@@ -116,9 +117,9 @@ contract RTCoin is Administration {
         return true;
     }
 
-    /** @dev This is used to approve someone to send tokens on your behalf
-        @param _spender This is the person who can spend on your behalf
-        @param _amount This is the amount of tokens that they can spend
+    /** @notice This is used to approve someone to send tokens on your behalf
+        * @param _spender This is the person who can spend on your behalf
+        * @param _amount This is the amount of tokens that they can spend
      */
     function approve(
         address _spender,
@@ -135,8 +136,8 @@ contract RTCoin is Administration {
 
     // NON STANDARD FUNCTIONS //
 
-    /** @dev This is used to set the merged miner validator contract
-        @param _mergedMinerValidator this is the address of the mergedmining contract
+    /** @notice This is used to set the merged miner validator contract
+        * @param _mergedMinerValidator this is the address of the mergedmining contract
      */
     function setMergedMinerValidator(address _mergedMinerValidator) external onlyAdmin returns (bool) {
         mergedMinerValidatorAddress = _mergedMinerValidator;
@@ -144,8 +145,8 @@ contract RTCoin is Administration {
         return true;
     }
 
-    /** @dev This is used to set the staking contract
-        @param _contractAddress this is the address of the staking contract
+    /** @notice This is used to set the staking contract
+        * @param _contractAddress this is the address of the staking contract
     */
     function setStakeContract(address _contractAddress) external onlyAdmin returns (bool) {
         // this prevents us from changing contracts while there are active stakes going on
@@ -159,8 +160,8 @@ contract RTCoin is Administration {
     }
 
 
-    /** @dev This is used to mint new tokens
-        * Can only be executed by the staking, and merged miner validator contracts
+    /** @notice This is used to mint new tokens
+        * @dev Can only be executed by the staking, and merged miner validator contracts
         * @param _recipient This is the person who will received the mint tokens
         * @param _amount This is the amount of tokens that they will receive and which will be generated
      */
@@ -178,7 +179,7 @@ contract RTCoin is Administration {
         return true;
     }
 
-    /** @dev Allow us to transfer tokens that someone might've accidentally sent to this contract
+    /** @notice Allow us to transfer tokens that someone might've accidentally sent to this contract
         @param _tokenAddress this is the address of the token contract
         @param _recipient This is the address of the person receiving the tokens
         @param _amount This is the amount of tokens to send
@@ -200,7 +201,7 @@ contract RTCoin is Administration {
         return true;
     }
     
-    /** @dev Transfers eth that is stuck in this contract
+    /** @notice Transfers eth that is stuck in this contract
         * ETH can be sent to the address this contract resides at before the contract is deployed
         * A contract can be suicided, forcefully sending ether to this contract
      */
@@ -215,7 +216,7 @@ contract RTCoin is Administration {
         return true;
     }
 
-    /** @dev Used to freeze token transfers
+    /** @notice Used to freeze token transfers
      */
     function freezeTransfers()
         public
@@ -227,7 +228,7 @@ contract RTCoin is Administration {
         return true;
     }
 
-    /** @dev Used to thaw token transfers
+    /** @notice Used to thaw token transfers
      */
     function thawTransfers()
         public
@@ -242,7 +243,7 @@ contract RTCoin is Administration {
 
     /**GETTERS */
 
-    /** @dev Used to get the total supply
+    /** @notice Used to get the total supply
      */
     function totalSupply()
         public
@@ -252,7 +253,7 @@ contract RTCoin is Administration {
         return totalSupply;
     }
 
-    /** @dev Used to get the balance of a holder
+    /** @notice Used to get the balance of a holder
         * @param _holder The address of the token holder
      */
     function balanceOf(
@@ -265,7 +266,7 @@ contract RTCoin is Administration {
         return balances[_holder];
     }
 
-    /** @dev Used to get the allowance of someone
+    /** @notice Used to get the allowance of someone
         * @param _owner The address of the token owner
         * @param _spender The address of thhe person allowed to spend funds on behalf of the owner
      */
