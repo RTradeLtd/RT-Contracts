@@ -1,4 +1,5 @@
 pragma solidity 0.4.24;
+pragma experimental "v0.5.0";
 
 import "../Interfaces/RTCoinInterface.sol";
 import "../Interfaces/ERC20Interface.sol";
@@ -6,6 +7,7 @@ import "../Math/SafeMath.sol";
 
 /// @title This contract is used to handle staking, and subsequently can increase RTC token supply
 /// @author Postables, RTrade Technologies Ltd
+/// @dev We able V5 for safety features, see https://solidity.readthedocs.io/en/v0.4.24/security-considerations.html#take-warnings-seriously
 contract Stake {
     using SafeMath for uint256;
 

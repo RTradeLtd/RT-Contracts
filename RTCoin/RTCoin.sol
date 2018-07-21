@@ -1,4 +1,5 @@
 pragma solidity 0.4.24;
+pragma experimental "v0.5.0";
 
 import "../Modules/Administration.sol";
 import "../Math/SafeMath.sol";
@@ -7,6 +8,7 @@ import "../Interfaces/StakeInterface.sol";
 
 /// @title RTC Token Contract
 /// @author Postables, RTrade Technologies Ltd
+/// @dev We able V5 for safety features, see https://solidity.readthedocs.io/en/v0.4.24/security-considerations.html#take-warnings-seriously
 contract RTCoin is Administration {
 
     using SafeMath for uint256;

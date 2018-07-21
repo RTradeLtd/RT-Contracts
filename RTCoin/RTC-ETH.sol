@@ -1,19 +1,25 @@
 pragma solidity 0.4.24;
+pragma experimental "v0.5.0";
 
-import "./Modules/Administration.sol";
-import "./Math/SafeMath.sol";
-import "./Interfaces/RTCoinInterface.sol";
-import "./Interfaces/ERC20Interface.sol";
+import "../Modules/Administration.sol";
+import "../Math/SafeMath.sol";
+import "../Interfaces/RTCoinInterface.sol";
+import "../Interfaces/ERC20Interface.sol";
 
+/// @title RTCETH allows the sale of RTC for ETH with an updatable ETH price
+/// @author Postables, RTrade Technologies Ltd
+/// @dev We able V5 for safety features, see https://solidity.readthedocs.io/en/v0.4.24/security-considerations.html#take-warnings-seriously
 contract RTCETH is Administration {
     using SafeMath for uint256;
+
+    // we mark as constant private to save gas
+    address constant private TOKENADDRESS = address(0);
+    RTCoinInterface constant public RTI = RTCoinInterface(TOKENADDRESS);
 
     address public hotWallet;
     uint256 public ethUSD;
     uint256 public weiPerRtc;
     bool   public locked;
-
-    RTCoinInterface public rtI;
 
     event EthUsdPriceUpdated(uint256 _ethUSD);
     event EthPerRtcUpdated(uint256 _ethPerRtc);
@@ -52,26 +58,14 @@ contract RTCETH is Administration {
     }
 
     constructor() public {
+        // prevent deployment if the token address isnt set
+        require(TOKENADDRESS != address(0));
         locked = true;
-        rtI = RTCoinInterface(address(0xb4ed44372bbc71dad64956373214c667b717e805));
     }
 
-    function () public payable {
+    function () external payable {
         require(buyRtc());
     }
-
-    function setRtInterfae(
-        address _rtcAddress)
-        public
-        onlyAdmin
-        isLocked
-        returns (bool)
-    {
-        rtI = RTCoinInterface(_rtcAddress);
-        // event place holder
-        return true;
-    }
-
 
     function updateEthPrice(
         uint256 _ethUSD)
@@ -81,7 +75,9 @@ contract RTCETH is Administration {
     {
         ethUSD = _ethUSD;
         uint256 oneEth = 1 ether;
+        // here we calculate how many ETH 1 USD is worth
         uint256 oneUsdOfEth = oneEth.div(ethUSD);
+        // for the duration of this contract, RTC will be at a fixed price of 0.125USD, which divides into 1 8 times
         weiPerRtc = oneUsdOfEth.div(8);
         emit EthUsdPriceUpdated(ethUSD);
         emit EthPerRtcUpdated(weiPerRtc);
@@ -105,7 +101,7 @@ contract RTCETH is Administration {
         isLocked
         returns (bool)
     {
-        require(rtI.transfer(msg.sender, rtI.balanceOf(address(this))));
+        require(RTI.transfer(msg.sender, RTI.balanceOf(address(this))));
         return true;
     }
 
@@ -121,7 +117,7 @@ contract RTCETH is Administration {
         emit RtcPurchased(rtcPurchased);
         hotWallet.transfer(msg.value);
         emit RtcPurchased(rtcPurchased);
-        require(rtI.transfer(msg.sender, rtcPurchased));
+        require(RTI.transfer(msg.sender, rtcPurchased));
         return true;
     }
 }

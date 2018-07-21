@@ -1,10 +1,12 @@
 pragma solidity 0.4.24;
+pragma experimental "v0.5.0";
 
 import "../Interfaces/RTCoinInterface.sol";
 import "../Math/SafeMath.sol";
 
 /// @title TEMPORAL Payment Contract
 /// @author Postables, RTrade Technologies Ltd
+/// @dev We able V5 for safety features, see https://solidity.readthedocs.io/en/v0.4.24/security-considerations.html#take-warnings-seriously
 contract Payments {
     using SafeMath for uint256;    
 
