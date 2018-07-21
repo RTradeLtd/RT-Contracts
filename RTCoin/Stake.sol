@@ -74,36 +74,45 @@ contract Stake {
 
     modifier validInitialStakeRelease(uint256 _stakeNum) {
         // make sure that the stake is active
-        require(stakes[msg.sender][_stakeNum].state == StakeStateEnum.staking);
-        require(now >= stakes[msg.sender][_stakeNum].releaseDate && block.number >= stakes[msg.sender][_stakeNum].blockUnlocked);
-        require(internalRTCBalances[msg.sender] >= stakes[msg.sender][_stakeNum].initialStake);
+        require(stakes[msg.sender][_stakeNum].state == StakeStateEnum.staking, "stake is not active");
+        require(
+            now >= stakes[msg.sender][_stakeNum].releaseDate && block.number >= stakes[msg.sender][_stakeNum].blockUnlocked, 
+            "attempting to withdraw initial stake before unlock block and date"
+        );
+        require(internalRTCBalances[msg.sender] >= stakes[msg.sender][_stakeNum].initialStake, "invalid internal rtc balance");
         _;
     }
 
     modifier validMint(uint256 _stakeNumber) {
         // allow people to withdraw their rewards even if the staking period is over
-        require(stakes[msg.sender][_stakeNumber].state == StakeStateEnum.staking || stakes[msg.sender][_stakeNumber].state == StakeStateEnum.staked);
+        require(
+            stakes[msg.sender][_stakeNumber].state == StakeStateEnum.staking || stakes[msg.sender][_stakeNumber].state == StakeStateEnum.staked, 
+            "stake must be active or inactive in order to mint tokens"
+        );
         // make sure that the current coins minted are less than the total coins minted
-        require(stakes[msg.sender][_stakeNumber].coinsMinted < stakes[msg.sender][_stakeNumber].totalCoinsToMint);
+        require(
+            stakes[msg.sender][_stakeNumber].coinsMinted < stakes[msg.sender][_stakeNumber].totalCoinsToMint, 
+            "current coins minted must be less than total"
+        );
         uint256 currentBlock = block.number;
         uint256 lastBlockWithdrawn = stakes[msg.sender][_stakeNumber].lastBlockWithdrawn;
         // verify that the current block is one higher than the last block a withdrawal was made
-        require(currentBlock > lastBlockWithdrawn);
+        require(currentBlock > lastBlockWithdrawn, "current block must be one higher than last withdrawal");
         _;
     }
 
     modifier stakingEnabled(uint256 _numRTC) {
         // make sure this contract can mint coins on the RTC token contract
-        require(canMint());
+        require(canMint(), "staking contract is unable to mint tokens");
         // make sure new stakes are allowed
-        require(newStakesAllowed);
+        require(newStakesAllowed, "new stakes are not allowed");
         // make sure they are staking at least one RTC
-        require(_numRTC >= MINSTAKE);
+        require(_numRTC >= MINSTAKE, "specified stake is lower than minimum amount");
         _;
     }
 
     modifier onlyAdmin() {
-        require(msg.sender == admin);
+        require(msg.sender == admin, "sender is not admin");
         _;
     }
 
@@ -141,7 +150,7 @@ contract Stake {
      */
     function allowNewStakes() public onlyAdmin returns (bool) {
         newStakesAllowed = true;
-        require(RTI.stakeContract() == address(this));
+        require(RTI.stakeContract() == address(this), "rtc token contract is not set to use this contract as the staking contract");
         return true;
     }
 
@@ -153,7 +162,10 @@ contract Stake {
         // determine the amount of coins to be minted in this withdrawal
         uint256 mintAmount = calculateMint(_stakeNumber);
         // make sure that we can't mint more than allowed
-        require(stakes[msg.sender][_stakeNumber].coinsMinted.add(mintAmount) <= stakes[msg.sender][_stakeNumber].totalCoinsToMint);
+        require(
+            stakes[msg.sender][_stakeNumber].coinsMinted.add(mintAmount) <= stakes[msg.sender][_stakeNumber].totalCoinsToMint, 
+            "total coins minted does not add up"
+        );
         // update current coins minted
         stakes[msg.sender][_stakeNumber].coinsMinted = stakes[msg.sender][_stakeNumber].coinsMinted.add(mintAmount);
         // update the last block a withdrawal was made at
@@ -181,7 +193,7 @@ contract Stake {
         // emit an event
         emit InitialStakeWithdrawn(msg.sender, _stakeNumber, initialStake);
         // transfer the tokenz
-        require(RTI.transfer(msg.sender, initialStake));
+        require(RTI.transfer(msg.sender, initialStake), "unable to transfer tokens likely due to incorrect balance");
         return true;
     }
 
@@ -224,7 +236,7 @@ contract Stake {
         // emit an event
         emit StakeDeposited(msg.sender, stakeCount, totalCoinsMinted, releaseDate, blockReleased);
         // transfer tokens
-        require(RTI.transferFrom(msg.sender, address(this), _numRTC));
+        require(RTI.transferFrom(msg.sender, address(this), _numRTC), "transfer from failed, likely needs approval");
         return true;
     }
 
@@ -324,7 +336,7 @@ contract Stake {
         * This should only ever be false under extreme circumstances such as a potential vulnerability
      */
     function canMint() public view returns (bool) {
-        assert(RTI.stakeContract() == address(this));
+        require(RTI.stakeContract() == address(this), "rtc token contract is not set to use this contract as the staking contract");
         return true;
     }
 }

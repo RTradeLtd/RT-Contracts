@@ -52,10 +52,10 @@ contract RTCoin is Administration {
     // makes sure that only the stake contract, or merged miner validator contract can mint coins
     modifier onlyMinters() {
         if (mergedMinerValidatorAddress != address(0)) {
-            require(msg.sender == stakeContractAddress || msg.sender == mergedMinerValidatorAddress);
+            require(msg.sender == stakeContractAddress || msg.sender == mergedMinerValidatorAddress, "sender is neither stake nor validator contract");
             _;
         } else {
-            require(msg.sender == stakeContractAddress);
+            require(msg.sender == stakeContractAddress, "sender is not stake contract");
             _;
         }
     }
@@ -82,7 +82,7 @@ contract RTCoin is Administration {
         returns (bool)
     {
         // check that the sender has a valid balance
-        require(balances[msg.sender] >= _amount);
+        require(balances[msg.sender] >= _amount, "sender does not have enough tokens");
         balances[msg.sender] = balances[msg.sender].sub(_amount);
         balances[_recipient] = balances[_recipient].add(_amount);
         emit Transfer(msg.sender, _recipient, _amount);
@@ -103,9 +103,9 @@ contract RTCoin is Administration {
         returns (bool)
     {
         // ensure owner has a valid balance
-        require(balances[_owner] >= _amount);
+        require(balances[_owner] >= _amount, "owner does not have enough tokens");
         // ensure that the spender has a valid allowance
-        require(allowed[_owner][msg.sender] >= _amount);
+        require(allowed[_owner][msg.sender] >= _amount, "sender does not have enough allowance");
         // reduce the allowance
         allowed[_owner][msg.sender] = allowed[_owner][msg.sender].sub(_amount);
         // reduce balance of owner
@@ -127,8 +127,7 @@ contract RTCoin is Administration {
         public
         returns (bool)
     {
-        require(_amount > 0);
-        require(allowed[msg.sender][_spender].add(_amount) > allowed[msg.sender][_spender]);
+        require(_amount > 0, "amount must be greater than 0");
         allowed[msg.sender][_spender] = allowed[msg.sender][_spender].add(_amount);
         emit Approval(msg.sender, _spender, _amount);
         return true;
@@ -151,7 +150,7 @@ contract RTCoin is Administration {
     function setStakeContract(address _contractAddress) external onlyAdmin returns (bool) {
         // this prevents us from changing contracts while there are active stakes going on
         if (stakeContractAddress != address(0)) {
-            require(stake.activeStakes() == 0);
+            require(stake.activeStakes() == 0, "staking contract already configured, to change it must have 0 active stakes");
         }
         stakeContractAddress = _contractAddress;
         stake = StakeInterface(_contractAddress);
@@ -193,11 +192,12 @@ contract RTCoin is Administration {
         returns (bool)
     {
         // don't allow us to transfer RTC tokens
-        require(_tokenAddress != address(this));
+        require(_tokenAddress != address(this), "token address can't be this contract");
         ERC20Interface eI = ERC20Interface(_tokenAddress);
-        require(eI.balanceOf(address(this)) >= _amount);
-        require(eI.transfer(_recipient, _amount));
+        require(eI.balanceOf(address(this)) >= _amount, "attempting to send more tokens than current balance");
+        require(eI.transfer(_recipient, _amount), "token transfer failed");
         emit ForeignTokenTransfer(msg.sender, _recipient, _amount);
+        return true;
     }
     
     /** @dev Transfers eth that is stuck in this contract
@@ -212,6 +212,7 @@ contract RTCoin is Administration {
         uint256 balance = address(this).balance;
         msg.sender.transfer(address(this).balance);
         emit EthTransferOut(msg.sender, balance);
+        return true;
     }
 
     /** @dev Used to freeze token transfers
