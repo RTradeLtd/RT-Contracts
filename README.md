@@ -4,22 +4,15 @@ Collection of RTrade's Smart Contracts
 
 ## RTCoin
 
-RTC can be considered a "Merged Mining Proof-Of-Stake" coin, in that the total supply can only be increased by staking RTC in the Stake contract.  The staking system is completely hands off, except for a total of three steps:
-* 1) Depositing stake
-* 2) Withdrawing stake reward
-* 3) Withdrawing inital stake after stake period is over
+RTCoin (RTC) is an "mmPOS" (merged-mining Proof Of Stake) ERC20 compliant utility token that gives the user access to RTrade's services. Initially starting out with 61.6Million tokens, the supply can only ever be increased, and not burned. There are two ways to generate RTC, either by staking or through merged mining with the Ethereum blockchain. For release, PoS will be supported hwoever the merged mining contract will be released at a later date.
 
-Your stake reward can be withdrawn whenever you please, so long as at least one block has passed since the last time you withdrew your reward.  Initiating a withdrawal process, kicks off the supply increase on the RTC token contract.
+### RTC - Proof Of Stake
 
-## RTCoin - Merged Mining
+By utilizing the `Stake.sol` smart contract, users are able to stake, at a minimum, 1RTC for a period of 2103840 blocks, generating 10% (note, this may be subject to change before release) of the initial stake as newly minted RTC tokens over the lockup time (2103840 blocks). The staking system features per-block coin generation, allowing the user to mint coins every single block directly to their Ethereum address. After a period of 2103840 blocks, and after 31557600 (we reach this figure by taking an avg 15 second block time, multiplied by the lockup blocks) seconds have passed, the initial stake can be withdrawn to the users wallet.
 
-It is possible for all miners of ethereum, to also be rewarded RTC. In order to do so, the miner of a block must submit sufficient validation information to the Merged Miner Contract. This validation information must be the entire block header, as well as necessary components to parse through, and reconstruct the block header to validate that the person submitting the transaction, is the person who mined the block. There will be a semi-significant mininum withdrawal amount from the merged mining contract.
+### RTC - Merged Mining
 
-Development roadmap for Merged Mining:
-    1) require simple rlp encoded block header submission (75% complete)
-    2) Allow simple, but incentivized, block hash + number submission (not yet started)
-    3) require block header validation  (not yet started)
-
+Currently in development, a Merged Mining contract will allow anyone who mines a block on the Ethereum mainnet, to submit the block headers from the block which they mined to our Merged Mining contract, and be awarded freshly minted RTC! Currently the merged mining contract requires that each block, the block hash, and the coinbase (miner) are stored in a smart contract, allowing the miner to claim their minted tokens whenever. The ability to submit block hash and coinbase information is incentivized and can also mint RTC. The first person to submit the blockhash and coinbase information for a given block will receive a small amount of RTC, directly minted to their address. We incentivize storing this information as the user has to pay for the gas costs to invoke the transaction.
 
 ## Thanks
 
