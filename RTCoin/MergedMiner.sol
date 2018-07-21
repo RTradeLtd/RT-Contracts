@@ -1,9 +1,14 @@
 pragma solidity 0.4.24;
+pragma experimental "v0.5.0";
 
 import "../Math/SafeMath.sol";
 import "../Interfaces/RTCoinInterface.sol";
 
-contract MinerValidator {
+/// @title Merged Miner allows people who mine mainnet Ethereum blocks to also mint RTC
+/// @author Postables, RTrade Technologies Ltd
+/// @notice Version 1, future versions will require a non-interactive block submissinon method
+/// @dev We able V5 for safety features, see https://solidity.readthedocs.io/en/v0.4.24/security-considerations.html#take-warnings-seriously
+contract MergedMiner {
 
     using SafeMath for uint256;
 
@@ -13,35 +18,27 @@ contract MinerValidator {
     address constant public TOKENADDRESS = 0xB8fe3B2C83014566733B766a27d94CB9AC167Dc6;
     RTCoinInterface constant public RTI = RTCoinInterface(TOKENADDRESS);
 
-    struct RewardStruct {
-        uint256 totalRewards;
-        uint256 balance;
-    }
+    address public blockDeployedAtMiner;
+    uint256 public blockDeployedAt;
+
+    enum BlockStateEnum { nil, submitted, claimed }
 
     struct Blocks {
         uint256 number;
         address coinbase;
-        bytes32 hash;
-        bool set;
-        bool claimed;
-    }
-
-    struct BlockMiners {
-        mapping (uint256 => bool) claims;
-        mapping (uint256 => uint256) indexes;
-        uint256[] blocks;
+        BlockStateEnum state;
     }
 
     mapping (uint256 => Blocks) public blocks;
-    mapping (address => BlockMiners) private miners;
 
-    modifier set(uint256 _blockNum) {
-        require(blocks[_blockNum].set);
+    modifier submittedBlock(uint256 _blockNum) {
+        require(blocks[_blockNum].state == BlockStateEnum.submitted);
         _;
 
     }
-    modifier notSet(uint256 _blockNum) {
-        require(!blocks[_blockNum].set);
+
+    modifier nonSubmittedBlock(uint256 _blockNum) {
+        require(blocks[_blockNum].state == BlockStateEnum.nil);
         _;
     }
 
@@ -51,78 +48,53 @@ contract MinerValidator {
     }
 
     modifier unclaimed(uint256 _blockNumber) {
-        require(!blocks[_blockNumber].claimed);
+        require(blocks[_blockNumber].state == BlockStateEnum.submitted);
         _;
     }
 
     constructor() public {
         require(TOKENADDRESS != address(0), "token address not set");
+        blockDeployedAt = block.number;
+        blockDeployedAtMiner = block.coinbase;
     }
 
-    function submitBlock() public notSet(block.number) returns (bool) {
+    /** @notice Used to submit block hash, and block miner information for the current block
+        * @dev Future iterations will avoid this process entirely, and use RLP encoded block headers to parse the data.
+     */
+    function submitBlock() public nonSubmittedBlock(block.number) returns (bool) {
         Blocks memory b = Blocks({
             number: block.number,
             coinbase: block.coinbase,
-            hash: blockhash(block.number),
-            set: true,
-            claimed: false
+            state: BlockStateEnum.submitted
         });
-        miners[block.coinbase].blocks.push(block.number);
-        miners[block.coinbase].claims[block.number] = false;
-        miners[block.coinbase].indexes[block.number] = miners[block.coinbase].blocks.length;
         blocks[block.number] = b;
-        require(RTI.transfer(msg.sender, SUBMISSIONREWARD), "failed to transfer reward to block submitter");
+        require(RTI.mint(msg.sender, SUBMISSIONREWARD), "failed to transfer reward to block submitter");
         return true;
     }
 
-    function claimReward(uint256 _blockNumber) public isCoinbase(_blockNumber) unclaimed(_blockNumber) set(_blockNumber) returns (bool) {
-        blocks[_blockNumber].claimed = true;
-        miners[msg.sender].claims[block.number] = true;
-        uint256 index = miners[msg.sender].indexes[_blockNumber];
-        // free up some space
-        delete miners[msg.sender].blocks[index];
-        // set the claim status
-        miners[msg.sender].claims[_blockNumber] = true;
-        require(RTI.transfer(msg.sender, BLOCKREWARD), "failed to transfer block reward");
+    /** @notice Used by a miner to claim their merged mined RTC
+        * @param _blockNumber The block number of the block that the person mined
+     */
+    function claimReward(uint256 _blockNumber) 
+        public 
+        isCoinbase(_blockNumber) 
+        unclaimed(_blockNumber) 
+        submittedBlock(_blockNumber)
+        returns (bool) 
+    {
+        // mark the reward as claimed
+        blocks[_blockNumber].state = BlockStateEnum.claimed;
+        require(RTI.mint(msg.sender, BLOCKREWARD), "failed to transfer block reward");
         return true;
     }
 
-    function bulkClaimReward(uint256[] _blocks) public returns (bool) {
-        uint256 cumulativeReward;
-        for (uint256 i = 0; i < _blocks.length; i++) {
-            uint256 num = _blocks[i];
-            // if this block has been claimed, skip processing
-            if (blocks[num].claimed) {
-                continue;
-            }
-            // if tx submitter isn't coinbase, skip processing
-            if (blocks[num].coinbase != msg.sender) {
-                continue;
-            }
-            // also check here that the block wasn't claimed
-            if (miners[msg.sender].claims[num]) {
-                continue;
-            }
-            // if the element is empty this has been claimed
-            if (miners[msg.sender].indexes[num] == 0) {
-                continue;
-            }
-            uint256 index = miners[msg.sender].indexes[num];
-            // free up some space
-            delete miners[msg.sender].blocks[index];
-            // set claimed to true
-            blocks[num].claimed = true;
-            // record the users claims
-            miners[msg.sender].claims[num] = true;
-            // update the cumulative reward
-            cumulativeReward = cumulativeReward.add(BLOCKREWARD);
+    /** @notice Used by a miner to bulk claim their merged mined RTC
+        * @param _blockNumbers Contains the block numbers for which they want to claim
+     */
+    function bulkClaimReward(uint256[] _blockNumbers) public returns (bool) {
+        for (uint256 i = 0; i < _blockNumbers.length; i++) {
+            require(claimReward(_blockNumbers[i]));
         }
-        require(cumulativeReward > 0, "no rewards recorded");
-        require(RTI.transfer(msg.sender, cumulativeReward), "failed to send tokens to claimer");
+        return true;
     }
-
-    function getBlocksForMiner(address _miner) public view returns (uint256[]) {
-        return miners[_miner].blocks;
-    }
-
 }
