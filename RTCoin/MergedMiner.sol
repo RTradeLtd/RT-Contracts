@@ -18,6 +18,7 @@ contract MergedMinerValidator {
     uint256 constant public BLOCKREWARD = 300000000000000000;
     address constant public TOKENADDRESS = 0xB8fe3B2C83014566733B766a27d94CB9AC167Dc6;
     RTCoinInterface constant public RTI = RTCoinInterface(TOKENADDRESS);
+    address public admin = address(0);
 
     enum BlockStateEnum { nil, submitted, claimed }
 
@@ -53,8 +54,13 @@ contract MergedMinerValidator {
         _;
     }
 
+    modifier onlyAdmin() {
+        require(msg.sender == admin);
+        _;
+    }
     constructor() public {
         require(TOKENADDRESS != address(0), "token address not set");
+        admin = msg.sender;
         Blocks memory b = Blocks({
             number: block.number,
             coinbase: block.coinbase,
@@ -117,6 +123,13 @@ contract MergedMinerValidator {
             );
         }
         require(RTI.mint(msg.sender, totalMint), "unable to mint tokens");
+        return true;
+    }
+
+    /** @notice Used to destroy the contract
+     */
+    function goodNightSweetPrince() public onlyAdmin returns (bool) {
+        selfdestruct(msg.sender);
         return true;
     }
 }
