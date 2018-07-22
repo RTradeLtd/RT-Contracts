@@ -4,7 +4,7 @@ Collection of RTrade's Smart Contracts
 
 ## RTCoin
 
-RTCoin (RTC) is an "mmPOS" (merged-mining Proof Of Stake) ERC20 compliant utility token that gives the user access to RTrade's services. Initially starting out with 61.6Million tokens, the supply can only ever be increased, and not burned. There are two ways to generate RTC, either by staking or through merged mining with the Ethereum blockchain. For release, PoS will be supported hwoever the merged mining contract will be released at a later date.
+RTCoin (RTC) is an "mmPOS" (merged-mining Proof Of Stake) ERC20 compliant utility token that gives the user access to RTrade's services. Initially starting out with 61.6Million tokens, the supply can only ever be increased, and not burned. There are two ways to generate RTC, either by staking or through merged mining with the Ethereum blockchain. For release, PoS will be supported however the merged mining contract will be released at a later date.
 
 ### RTC - Proof Of Stake
 
