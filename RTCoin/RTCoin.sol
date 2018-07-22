@@ -17,17 +17,17 @@ contract RTCoin is Administration {
     uint256 constant public INITIALSUPPLY = 61600000000000000000000000;
 
     // this is the interface that allows interaction with the staking contract
-    StakeInterface public stake;
+    StakeInterface public stake = StakeInterface(0);
     // this is the address of the staking contract
-    address public  stakeContractAddress;
+    address public  stakeContractAddress = address(0);
     // This is the address of the merged mining contract, not yet developed
-    address public  mergedMinerValidatorAddress;
-    string  public  name;
-    string  public  symbol;
-    uint256 public  totalSupply;
-    uint8   public  decimals;
-    // allows transfers to be frozen
-    bool    public  transfersFrozen;
+    address public  mergedMinerValidatorAddress = address(0);
+    string  public  name = "RTCoin";
+    string  public  symbol = "RTC";
+    uint256 public  totalSupply = INITIALSUPPLY;
+    uint8   public  decimals = 18;
+    // allows transfers to be frozen, but enable them by default
+    bool    public  transfersFrozen = true;
 
     mapping (address => uint256) public balances;
     mapping (address => mapping (address => uint256)) public allowed;
@@ -64,10 +64,6 @@ contract RTCoin is Administration {
     }
 
     constructor() public {
-        name = "RTCoin";
-        symbol = "RTC";
-        decimals = 18;
-        totalSupply = INITIALSUPPLY;
         balances[msg.sender] = totalSupply;
         emit Transfer(address(0), msg.sender, totalSupply);
     }

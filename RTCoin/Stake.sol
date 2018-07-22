@@ -9,6 +9,7 @@ import "../Math/SafeMath.sol";
 /// @author Postables, RTrade Technologies Ltd
 /// @dev We able V5 for safety features, see https://solidity.readthedocs.io/en/v0.4.24/security-considerations.html#take-warnings-seriously
 contract Stake {
+
     using SafeMath for uint256;
 
     // we mark as constant private to reduce gas costs
@@ -24,9 +25,9 @@ contract Stake {
     // due to the fact that this is also limited by block height, it is an acceptable risk
     uint256 constant private BLOCKSEC = 15;
     // this is the address of the RTC token contract
-    address  public TOKENCONTRACT = 0x3fDe03720917246B73ba532e4650c656D6020578;
+    address  public TOKENADDRESS = 0x3fDe03720917246B73ba532e4650c656D6020578;
     // this is the interface used to interact with the RTC Token
-    RTCoinInterface   public RTI = RTCoinInterface(TOKENCONTRACT);
+    RTCoinInterface   public RTI = RTCoinInterface(TOKENADDRESS);
 
     // keeps track of the number of active stakes
     uint256 public activeStakes;
@@ -61,11 +62,8 @@ contract Stake {
 
     event StakesDisabled();
     event StakesEnabled();
-    // we use indexed parameters to allow for more fine grained event filtration
     event StakeDeposited(address indexed _staker, uint256 indexed _stakeNum, uint256 _coinsToMint, uint256 _releaseDate, uint256 _releaseBlock);
-    // we use indexed parameters to allow for more fine grained event filtration
     event StakeRewardWithdrawn(address indexed _staker, uint256 indexed _stakeNum, uint256 _reward);
-    // we used indexed parameters to allow for more fine grained event filtration
     event InitialStakeWithdrawn(address indexed _staker, uint256 indexed _stakeNumber, uint256 _amount);
 
     // keeps track of the stakes a user has
@@ -79,6 +77,8 @@ contract Stake {
         // make sure that the stake is active
         require(stakes[msg.sender][_stakeNum].state == StakeStateEnum.staking, "stake is not active");
         require(
+            // please see comment at top of contract about why we consider it safe to use block times
+            // linter warnings are left enabled on purpose
             now >= stakes[msg.sender][_stakeNum].releaseDate && block.number >= stakes[msg.sender][_stakeNum].blockUnlocked, 
             "attempting to withdraw initial stake before unlock block and date"
         );
@@ -120,10 +120,7 @@ contract Stake {
     }
 
     constructor() public {
-        // prevent deployment if the token contract hasn't been set yet
-        if (TOKENCONTRACT == address(0)) {
-            revert();
-        }
+        require(TOKENADDRESS != address(0), "token address not set");
         admin = msg.sender;
     }
 
@@ -135,7 +132,7 @@ contract Stake {
         // update the interface
         RTI = RTCoinInterface(_contract);
         // update the address
-        TOKENCONTRACT = _contract;
+        TOKENADDRESS = _contract;
         return true;
     }
 

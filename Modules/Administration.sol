@@ -44,6 +44,7 @@ contract Administration {
         onlyOwner
         returns (bool)
     {
+        require(_newOwner != owner);
         owner = _newOwner;
         emit OwnershipTransferred(msg.sender, _newOwner);
         return true;
