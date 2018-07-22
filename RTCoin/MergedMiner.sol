@@ -106,7 +106,7 @@ contract MergedMinerValidator {
         * @dev To prevent expensive looping, we throttle to 20 withdrawals at once
         * @param _blockNumbers Contains the block numbers for which they want to claim
      */
-    function bulkClaimReward(uint256[] _blockNumbers) public returns (bool) {
+    function bulkClaimReward(uint256[] _blockNumbers) external returns (bool) {
         require(_blockNumbers.length <= 20, "can only claim up to 20 rewards at once");
         uint256 totalMint;
         // here we grab the reward number, so that we don't have to retrieve it from storage every loop, and instead, only retrieve once
