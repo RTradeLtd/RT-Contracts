@@ -16,9 +16,10 @@ contract MergedMinerValidator {
     uint256 constant public SUBMISSIONREWARD = 500000000000000000;
     // 0.3
     uint256 constant public BLOCKREWARD = 300000000000000000;
-    address constant public TOKENADDRESS = 0xB8fe3B2C83014566733B766a27d94CB9AC167Dc6;
+    address constant public TOKENADDRESS = 0x675b45856257CeEf650100C7Ca1b2E8c6FF42e7C;
     RTCoinInterface constant public RTI = RTCoinInterface(TOKENADDRESS);
     address public admin = address(0);
+    uint256 public lastBlockSet = 0;
 
     enum BlockStateEnum { nil, submitted, claimed }
 
@@ -54,6 +55,11 @@ contract MergedMinerValidator {
         _;
     }
 
+    modifier notCurrentSetBlock(uint256 _blockNumber) {
+        require(_blockNumber != lastBlockSet, "unable to submit information for already submitted block");
+        _;
+    }
+
     modifier onlyAdmin() {
         require(msg.sender == admin);
         _;
@@ -66,6 +72,7 @@ contract MergedMinerValidator {
             coinbase: block.coinbase,
             state: BlockStateEnum.submitted
         });
+        lastBlockSet = block.number;
         blocks[block.number] = b;
         // we use address(0) and don't mint any tokens, since "we are submitting the information" 
         emit BlockInformationSubmitted(block.coinbase, block.number, address(0));
@@ -74,12 +81,13 @@ contract MergedMinerValidator {
     /** @notice Used to submit block hash, and block miner information for the current block
         * @dev Future iterations will avoid this process entirely, and use RLP encoded block headers to parse the data.
      */
-    function submitBlock() public nonSubmittedBlock(block.number) returns (bool) {
+    function submitBlock() public nonSubmittedBlock(block.number) notCurrentSetBlock(block.number) returns (bool) {
         Blocks memory b = Blocks({
             number: block.number,
             coinbase: block.coinbase,
             state: BlockStateEnum.submitted
         });
+        lastBlockSet = block.number;
         blocks[block.number] = b;
         // lets not do a storage lookup so we can avoid SSLOAD gas usage
         emit BlockInformationSubmitted(block.coinbase, block.number, msg.sender);
