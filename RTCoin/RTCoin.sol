@@ -54,13 +54,11 @@ contract RTCoin is Administration {
 
     // makes sure that only the stake contract, or merged miner validator contract can mint coins
     modifier onlyMinters() {
-        if (mergedMinerValidatorAddress != address(0)) {
-            require(msg.sender == stakeContractAddress || msg.sender == mergedMinerValidatorAddress, "sender is neither stake nor validator contract");
-            _;
-        } else {
-            require(msg.sender == stakeContractAddress, "sender is not stake contract");
-            _;
-        }
+        require(
+            msg.sender == stakeContractAddress || msg.sender == mergedMinerValidatorAddress,
+            "sender is neither stake nor validator contract"
+        );
+        _;
     }
 
     constructor() public {
