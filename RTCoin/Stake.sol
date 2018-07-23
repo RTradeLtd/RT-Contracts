@@ -149,7 +149,7 @@ contract Stake {
      */
     function allowNewStakes() public onlyAdmin returns (bool) {
         newStakesAllowed = true;
-        require(RTI.stakeContract() == address(this), "rtc token contract is not set to use this contract as the staking contract");
+        require(RTI.stakeContractAddress() == address(this), "rtc token contract is not set to use this contract as the staking contract");
         return true;
     }
 
@@ -334,7 +334,7 @@ contract Stake {
         * @dev This should only ever be false under extreme circumstances such as a potential vulnerability
      */
     function canMint() public view returns (bool) {
-        require(RTI.stakeContract() == address(this), "rtc token contract is not set to use this contract as the staking contract");
+        require(RTI.stakeContractAddress() == address(this), "rtc token contract is not set to use this contract as the staking contract");
         return true;
     }
 }
