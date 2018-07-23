@@ -13,6 +13,25 @@ By default, token transfers are frozen so they need to manually be enabled after
 
 By utilizing the `Stake.sol` smart contract, users are able to stake, at a minimum, 1RTC for a period of 2103840 blocks, generating 10% (note, this may be subject to change before release) of the initial stake as newly minted RTC tokens over the lockup time (2103840 blocks). The staking system features per-block coin generation, allowing the user to mint coins every single block directly to their Ethereum address. After a period of 2103840 blocks, and after 31557600 (we reach this figure by taking an avg 15 second block time, multiplied by the lockup blocks) seconds have passed, the initial stake can be withdrawn to the users wallet.
 
+#### RTC - Proof Of Stake Setup
+
+Deployment:
+1) Ensure that the RTC token is deployed, along with transfers enable
+2) Deploy stake contract
+3) Set stake contract address on the RTC token
+4) Set RTC token interface and address on the stake contract
+5) Allow new stakes on the stake contract
+
+Interaction:
+1) Approve the stake contract to spend funds on your behalf
+2) Deposit the stake
+3) Wait one block and you can start minting tokens
+4) After 2103840 blocks and (2103840 * 15 seconds) have passed you can withdraw your initial stake
+
+#### RTC - Proof Of Stake Tests
+
+The proof of stake tests are configured to use a block hold period of 5 blocks to allow for easy end-to-end tests
+
 ### RTC - Merged Mining
 
 Currently in development, a Merged Mining contract will allow anyone who mines a block on the Ethereum mainnet, to submit the block headers from the block which they mined to our Merged Mining contract, and be awarded freshly minted RTC! Currently the merged mining contract requires that each block, the block hash, and the coinbase (miner) are stored in a smart contract, allowing the miner to claim their minted tokens whenever. The ability to submit block hash and coinbase information is incentivized and can also mint RTC. The first person to submit the blockhash and coinbase information for a given block will receive a small amount of RTC, directly minted to their address. We incentivize storing this information as the user has to pay for the gas costs to invoke the transaction.

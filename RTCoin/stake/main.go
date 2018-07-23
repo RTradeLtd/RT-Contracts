@@ -15,7 +15,7 @@ import (
 
 var keyFile = "/home/solidity/DevChainPOW/node1/UTC--2018-07-10T00-50-38.032362728Z--7e4a2359c745a982a54653128085eac69e446de1"
 var keyPass = "password123"
-var ipcFile = "/home/solidity/DevChain/node1/geth.ipc"
+var ipcFile = "/home/solidity/DevChainPOW/node1/geth.ipc"
 var key = `{"address":"7e4a2359c745a982a54653128085eac69e446de1","crypto":{"cipher":"aes-128-ctr","ciphertext":"eea2004c17292a9e94217bf53efbc31ff4ae62f3dd57f0938ab61c949a565dc1","cipherparams":{"iv":"6f6a7a89b556604940ac87ab1e78cfd1"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"8088e943ac0f37c8b4d01592d8bee96468853b6f1f13ca64d201cd68e7dc7b12"},"mac":"f856d734705f35e2acf854a44eb40796518730bd835ecaec01d1f3e7a7037813"},"id":"99e2cd49-4b51-4f01-b34c-aaa0efd332c3","version":3}`
 var rtcAddress = "0xE9AEc23c620681a59e2111785b0D35a90498128f"
 var stakeAddress = "0x321d5bc70eF0AA22D1E33e4328cfb827858F8b21"
@@ -234,4 +234,13 @@ func main() {
 	}
 
 	fmt.Printf("%+v\n", stakeStatus)
+
+	totalSupplyNew, err := rtc.TotalSupply(nil)
+	if err != nil {
+		log.Fatal("failed to get total supply")
+	}
+	if totalSupplyNew.Cmp(totalSupply) == 0 {
+		log.Fatal("minting process failed to increase token supply")
+	}
+	fmt.Println("new total supply", totalSupplyNew)
 }

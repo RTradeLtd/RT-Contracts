@@ -19,7 +19,7 @@ contract Stake {
     // NOTE ON MULTIPLIER: this is right now set to 10% this may however change before token is released
     uint256 constant private MULTIPLIER = 100000000000000000;
     // BLOCKHOLDPERIOD is used to determine how many blocks a stake is held for, and how many blocks will mint tokens
-    uint256 constant private BLOCKHOLDPERIOD = 5;
+    uint256 constant private BLOCKHOLDPERIOD = 2103840;
     // BLOCKSEC uses 15 seconds as an average block time. Ultimately the only thing this "restricts" is the time at which a stake is withdrawn
     // Yes, we use block timestamps which can be influenced to some degree by miners, however since this only determines the time at which an initial stake can be withdrawn at
     // due to the fact that this is also limited by block height, it is an acceptable risk
