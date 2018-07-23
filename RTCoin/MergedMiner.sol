@@ -31,7 +31,7 @@ contract MergedMinerValidator {
     mapping (uint256 => Blocks) public blocks;
 
     event BlockInformationSubmitted(address indexed _coinbase, uint256 indexed _blockNumber, address _submitter);
-    event MergedMinedRewardClaimed(address indexed _claimer, uint256 indexed _blockNumber, uint256 _blockReward);
+    event MergedMinedRewardClaimed(address indexed _claimer, uint256[] indexed _blockNumbers, uint256 _totalReward);
 
     modifier submittedBlock(uint256 _blockNum) {
         require(blocks[_blockNum].state == BlockStateEnum.submitted);
@@ -109,19 +109,15 @@ contract MergedMinerValidator {
     function bulkClaimReward(uint256[] _blockNumbers) external returns (bool) {
         require(_blockNumbers.length <= 20, "can only claim up to 20 rewards at once");
         uint256 totalMint;
-        // here we grab the reward number, so that we don't have to retrieve it from storage every loop, and instead, only retrieve once
-        // that means we only have to pay the SSLOAD gas once, and instead us MLOAD each iteration
-        uint256 reward = BLOCKREWARD;
         for (uint256 i = 0; i < _blockNumbers.length; i++) {
             // update their total amount minted
             totalMint = totalMint.add(claimReward(_blockNumbers[i]));
-            // emit an event
-            emit MergedMinedRewardClaimed(
-                blocks[_blockNumbers[i]].coinbase,
-                blocks[_blockNumbers[i]].number,
-                reward
-            );
+            // make sure the block was marked as claimed
+            require(blocks[_blockNumbers[i]].state == BlockStateEnum.claimed, "block state is not claimed");
         }
+        emit MergedMinedRewardClaimed(msg.sender, _blockNumbers, totalMint);
+        // make sure more than 0 is being claimed
+        require(totalMint > 0, "total coins to mint must be greater than 0");
         require(RTI.mint(msg.sender, totalMint), "unable to mint tokens");
         return true;
     }
