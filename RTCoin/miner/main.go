@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"math/big"
-	"os"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -19,7 +18,7 @@ var ipcFile = "/home/solidity/DevChainPOW/node1/geth.ipc"
 var key = `{"address":"7e4a2359c745a982a54653128085eac69e446de1","crypto":{"cipher":"aes-128-ctr","ciphertext":"eea2004c17292a9e94217bf53efbc31ff4ae62f3dd57f0938ab61c949a565dc1","cipherparams":{"iv":"6f6a7a89b556604940ac87ab1e78cfd1"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"8088e943ac0f37c8b4d01592d8bee96468853b6f1f13ca64d201cd68e7dc7b12"},"mac":"f856d734705f35e2acf854a44eb40796518730bd835ecaec01d1f3e7a7037813"},"id":"99e2cd49-4b51-4f01-b34c-aaa0efd332c3","version":3}`
 var rtcAddress = "0xE9AEc23c620681a59e2111785b0D35a90498128f"
 var mmAddress = "0x7f7AF7AE6e2CE658398e8fb5337ad02a6578D6C8"
-var deployRTC = false
+var deployRTC = true
 var deployMined = true
 
 func main() {
@@ -45,7 +44,7 @@ func main() {
 			log.Fatal(err)
 		}
 		fmt.Println("RTC Contract Address is", addr.String())
-		os.Exit(1)
+		rtcAddress = addr.String()
 	}
 
 	if deployMined {
@@ -63,81 +62,94 @@ func main() {
 
 	rtc, err := NewRTCoin(common.HexToAddress(rtcAddress), client)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("failed to generate rtc contract handler ", err)
 	}
 
 	miner, err := NewMergedMinerValidator(common.HexToAddress(mmAddress), client)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("failed to generate merged miner contract handler ", err)
 	}
 
-	fmt.Println("setting merged miner validator")
-	tx, err := rtc.SetMergedMinerValidator(auth, common.HexToAddress(mmAddress))
+	totalSupply, err := rtc.TotalSupply(nil)
 	if err != nil {
-		log.Fatal("failed to set merged miner validator", err)
+		log.Fatal("failed to get total supply ", err)
+	}
+
+	// enable transfers
+	tx, err := rtc.ThawTransfers(auth)
+	if err != nil {
+		log.Fatal("failed to thaw transfers ", err)
+	}
+	_, err = bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		log.Fatal("failed to wait for tx to be mined")
+	}
+
+	transferStatus, err := rtc.TransfersFrozen(nil)
+	if err != nil {
+		log.Fatal("failed to get transfer status ", err)
+	}
+	if transferStatus {
+		log.Fatal("failed to enable transfer status")
+	}
+	fmt.Println("transactions frozen ", transferStatus)
+	//set merged miner
+	tx, err = rtc.SetMergedMinerValidator(auth, common.HexToAddress(mmAddress))
+	if err != nil {
+		log.Fatal("failed to set merged miner validator ", err)
 	}
 
 	_, err = bind.WaitMined(context.Background(), client, tx)
 	if err != nil {
-		log.Fatal("failed to wait for tx mined", err)
+		log.Fatal("failed to wait for tx to be mined ", err)
 	}
 
 	mAddr, err := rtc.MergedMinerValidatorAddress(nil)
 	if err != nil {
-		log.Fatal("failed to retrieve merged miner validator", err)
+		log.Fatal("failed to get merged mienr validator address ", err)
 	}
 
 	if mAddr.String() != mmAddress {
-		log.Fatal("failed to correctly set the merged miner validator")
+		log.Fatal("failed to set merged miner validator")
 	}
 
-	tokenAddress, err := miner.TOKENADDRESS(nil)
+	tx, err = miner.SetRTI(auth, common.HexToAddress(rtcAddress))
 	if err != nil {
-		log.Fatal("failed to retrieve token address", err)
-	}
-	fmt.Println(tokenAddress)
-
-	lastBlockSet, err := miner.LastBlockSet(nil)
-	if err != nil {
-		log.Fatal("failed to retrieve last block set", err)
-	}
-
-	intArr := []*big.Int{}
-	intArr = append(intArr, big.NewInt(64))
-	auth.GasLimit = 275000
-	tx, err = miner.BulkClaimReward(auth, intArr)
-	if err != nil {
-		log.Fatal("faled to claim reward", err)
-	}
-
-	rcpt, err := bind.WaitMined(context.Background(), client, tx)
-	if err != nil {
-		log.Fatal("failed to wait for tx to be miend", err)
-	}
-
-	fmt.Printf("%+v\n", rcpt)
-
-	auth.GasLimit = 275000
-	tx, err = miner.SubmitBlock(auth)
-	if err != nil {
-		log.Fatal("unable to submit block", err)
+		log.Fatal("failed to set rtc token interface ", err)
 	}
 
 	_, err = bind.WaitMined(context.Background(), client, tx)
 	if err != nil {
-		log.Fatal("failed to wait for tx mined", err)
+		log.Fatal("failed to wait for transaction to be mined")
 	}
 
-	newLastBlockSet, err := miner.LastBlockSet(nil)
+	lastBlockSubmitted, err := miner.LastBlockSet(nil)
 	if err != nil {
-		log.Fatal("failed to retrieve last block set", err)
+		log.Fatal("failed to get last block submitted ", err)
+	}
+	fmt.Println("last block submitted ", lastBlockSubmitted)
+
+	intAr := []*big.Int{}
+	intAr = append(intAr, lastBlockSubmitted)
+
+	tx, err = miner.BulkClaimReward(auth, intAr)
+	if err != nil {
+		log.Fatal("failed to submit reward claim ", err)
+	}
+	rcpt, err := bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		log.Fatal("failed to wait for transaction to be miend ", err)
+	}
+	fmt.Printf("%+v\n", rcpt)
+
+	newTotalSupply, err := rtc.TotalSupply(nil)
+	if err != nil {
+		log.Fatal("failed to get total supply ", err)
 	}
 
-	if newLastBlockSet.Cmp(lastBlockSet) == 0 {
-		fmt.Println(lastBlockSet)
-		fmt.Println(newLastBlockSet)
-		log.Fatal("failed to update last block set")
+	if newTotalSupply.Cmp(totalSupply) == 0 {
+		log.Fatal("failed to increase total supply")
 	}
 
-	fmt.Println("succes")
+	fmt.Println("new total supply ", newTotalSupply)
 }
