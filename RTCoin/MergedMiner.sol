@@ -16,10 +16,11 @@ contract MergedMinerValidator {
     uint256 constant public SUBMISSIONREWARD = 500000000000000000;
     // 0.3
     uint256 constant public BLOCKREWARD = 300000000000000000;
-    address constant public TOKENADDRESS = 0x675b45856257CeEf650100C7Ca1b2E8c6FF42e7C;
-    RTCoinInterface constant public RTI = RTCoinInterface(TOKENADDRESS);
-    address public admin = address(0);
-    uint256 public lastBlockSet = 0;
+
+    address public tokenAddress;
+    address public admin;
+    uint256 public lastBlockSet;
+    RTCoinInterface public rtI;
 
     enum BlockStateEnum { nil, submitted, claimed }
 
@@ -55,6 +56,11 @@ contract MergedMinerValidator {
         _;
     }
 
+    modifier canMint() {
+        require(rtI.mergedMinerValidatorAddress() == address(this));
+        _;
+    }
+
     modifier notCurrentSetBlock(uint256 _blockNumber) {
         require(_blockNumber != lastBlockSet, "unable to submit information for already submitted block");
         _;
@@ -64,8 +70,13 @@ contract MergedMinerValidator {
         require(msg.sender == admin);
         _;
     }
+
+    modifier tokenAddressNotSet() {
+        require(tokenAddress == address(0), "token address must not be set");
+        _;
+    }
+
     constructor() public {
-        require(TOKENADDRESS != address(0), "token address not set");
         admin = msg.sender;
         Blocks memory b = Blocks({
             number: block.number,
@@ -81,7 +92,7 @@ contract MergedMinerValidator {
     /** @notice Used to submit block hash, and block miner information for the current block
         * @dev Future iterations will avoid this process entirely, and use RLP encoded block headers to parse the data.
      */
-    function submitBlock() public nonSubmittedBlock(block.number) notCurrentSetBlock(block.number) returns (bool) {
+    function submitBlock() public nonSubmittedBlock(block.number) notCurrentSetBlock(block.number) canMint returns (bool) {
         Blocks memory b = Blocks({
             number: block.number,
             coinbase: block.coinbase,
@@ -91,7 +102,7 @@ contract MergedMinerValidator {
         blocks[block.number] = b;
         // lets not do a storage lookup so we can avoid SSLOAD gas usage
         emit BlockInformationSubmitted(block.coinbase, block.number, msg.sender);
-        require(RTI.mint(msg.sender, SUBMISSIONREWARD), "failed to transfer reward to block submitter");
+        require(rtI.mint(msg.sender, SUBMISSIONREWARD), "failed to transfer reward to block submitter");
         return true;
     }
 
@@ -114,7 +125,7 @@ contract MergedMinerValidator {
         * @dev To prevent expensive looping, we throttle to 20 withdrawals at once
         * @param _blockNumbers Contains the block numbers for which they want to claim
      */
-    function bulkClaimReward(uint256[] _blockNumbers) external returns (bool) {
+    function bulkClaimReward(uint256[] _blockNumbers) external canMint returns (bool) {
         require(_blockNumbers.length <= 20, "can only claim up to 20 rewards at once");
         uint256 totalMint;
         for (uint256 i = 0; i < _blockNumbers.length; i++) {
@@ -126,14 +137,24 @@ contract MergedMinerValidator {
         emit MergedMinedRewardClaimed(msg.sender, _blockNumbers, totalMint);
         // make sure more than 0 is being claimed
         require(totalMint > 0, "total coins to mint must be greater than 0");
-        require(RTI.mint(msg.sender, totalMint), "unable to mint tokens");
+        require(rtI.mint(msg.sender, totalMint), "unable to mint tokens");
         return true;
     }
 
+    /** @notice Used to set the RTC token address and interface
+        * @param _tokenAddress This is the address of the RTC token contract
+     */
+    function setRTI(address _tokenAddress) public onlyAdmin tokenAddressNotSet returns (bool) {
+        tokenAddress = _tokenAddress;
+        rtI = RTCoinInterface(_tokenAddress);
+        return true;
+    }
+    
     /** @notice Used to destroy the contract
      */
     function goodNightSweetPrince() public onlyAdmin returns (bool) {
         selfdestruct(msg.sender);
         return true;
     }
+
 }

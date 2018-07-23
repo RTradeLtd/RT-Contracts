@@ -16,10 +16,10 @@ import (
 )
 
 // MergedMinerValidatorABI is the input ABI used to generate the binding from.
-const MergedMinerValidatorABI = "[{\"constant\":false,\"inputs\":[],\"name\":\"submitBlock\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"lastBlockSet\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"SUBMISSIONREWARD\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"TOKENADDRESS\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"RTI\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_blockNumbers\",\"type\":\"uint256[]\"}],\"name\":\"bulkClaimReward\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"goodNightSweetPrince\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"BLOCKREWARD\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"blocks\",\"outputs\":[{\"name\":\"number\",\"type\":\"uint256\"},{\"name\":\"coinbase\",\"type\":\"address\"},{\"name\":\"state\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"admin\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"_coinbase\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_blockNumber\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"_submitter\",\"type\":\"address\"}],\"name\":\"BlockInformationSubmitted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"_claimer\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_blockNumbers\",\"type\":\"uint256[]\"},{\"indexed\":false,\"name\":\"_totalReward\",\"type\":\"uint256\"}],\"name\":\"MergedMinedRewardClaimed\",\"type\":\"event\"}]"
+const MergedMinerValidatorABI = "[{\"constant\":false,\"inputs\":[],\"name\":\"submitBlock\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"lastBlockSet\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"SUBMISSIONREWARD\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"tokenAddress\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"rtI\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_tokenAddress\",\"type\":\"address\"}],\"name\":\"setRTI\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_blockNumbers\",\"type\":\"uint256[]\"}],\"name\":\"bulkClaimReward\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"goodNightSweetPrince\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"BLOCKREWARD\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"blocks\",\"outputs\":[{\"name\":\"number\",\"type\":\"uint256\"},{\"name\":\"coinbase\",\"type\":\"address\"},{\"name\":\"state\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"admin\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"_coinbase\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_blockNumber\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"_submitter\",\"type\":\"address\"}],\"name\":\"BlockInformationSubmitted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"_claimer\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_blockNumbers\",\"type\":\"uint256[]\"},{\"indexed\":false,\"name\":\"_totalReward\",\"type\":\"uint256\"}],\"name\":\"MergedMinedRewardClaimed\",\"type\":\"event\"}]"
 
 // MergedMinerValidatorBin is the compiled bytecode used for deploying new contracts.
-const MergedMinerValidatorBin = `608060405260008054600160a060020a031916815560015534801561002357600080fd5b5061002c61010a565b5060008054600160a060020a03199081163317825560408051606081018252438082524160208084019182526001848601818152848255938852600291829052949096208351815590519381018054909516600160a060020a03909416939093178085559051919485949160a060020a60ff02191690740100000000000000000000000000000000000000009084908111156100c457fe5b0217905550506040805160008152905143925041917f607bba4a16235877e634164f23916760adfb2e9a596e6e1f691347e944a6bcc5919081900360200190a350610128565b60408051606081018252600080825260208201819052909182015290565b6109ba806101376000396000f3006080604052600436106100a35763ffffffff7c010000000000000000000000000000000000000000000000000000000060003504166325ceb4b281146100a85780632722692c146100d15780633218ebcc146100f8578063516f89861461010d57806358e1c1741461010d578063e2bfcb421461013e578063ed2d1d9e1461015e578063f2477f7c14610173578063f25b3f9914610188578063f851a440146101db575b600080fd5b3480156100b457600080fd5b506100bd6101f0565b604080519115158252519081900360200190f35b3480156100dd57600080fd5b506100e66104b4565b60408051918252519081900360200190f35b34801561010457600080fd5b506100e66104ba565b34801561011957600080fd5b506101226104c6565b60408051600160a060020a039092168252519081900360200190f35b34801561014a57600080fd5b506100bd60048035602481019101356104de565b34801561016a57600080fd5b506100bd61080b565b34801561017f57600080fd5b506100e6610826565b34801561019457600080fd5b506101a0600435610832565b60408051848152600160a060020a03841660208201529081018260028111156101c557fe5b60ff168152602001935050505060405180910390f35b3480156101e757600080fd5b50610122610860565b60006101fa610970565b43600081815260026020819052604082206001015460a060020a900460ff169081111561022357fe5b1461022d57600080fd5b60015443908114156102af576040805160e560020a62461bcd02815260206004820152603860248201527f756e61626c6520746f207375626d697420696e666f726d6174696f6e20666f7260448201527f20616c7265616479207375626d697474656420626c6f636b0000000000000000606482015290519081900360840190fd5b60408051606081018252438082524160208084019182526001848601818152848255600094855260029283905295909320845181559151928201805473ffffffffffffffffffffffffffffffffffffffff1916600160a060020a0390941693909317808455945193975087949193929174ff000000000000000000000000000000000000000019169060a060020a90849081111561034957fe5b02179055505060408051338152905143925041917f607bba4a16235877e634164f23916760adfb2e9a596e6e1f691347e944a6bcc5919081900360200190a3604080517f40c10f190000000000000000000000000000000000000000000000000000000081523360048201526706f05b59d3b200006024820152905173675b45856257ceef650100c7ca1b2e8c6ff42e7c916340c10f199160448083019260209291908290030181600087803b15801561040257600080fd5b505af1158015610416573d6000803e3d6000fd5b505050506040513d602081101561042c57600080fd5b505115156104aa576040805160e560020a62461bcd02815260206004820152602c60248201527f6661696c656420746f207472616e736665722072657761726420746f20626c6f60448201527f636b207375626d69747465720000000000000000000000000000000000000000606482015290519081900360840190fd5b6001935050505090565b60015481565b6706f05b59d3b2000081565b73675b45856257ceef650100c7ca1b2e8c6ff42e7c81565b600080806014841115610561576040805160e560020a62461bcd02815260206004820152602760248201527f63616e206f6e6c7920636c61696d20757020746f20323020726577617264732060448201527f6174206f6e636500000000000000000000000000000000000000000000000000606482015290519081900360840190fd5b5060005b838110156106395761059861058b86868481811061057f57fe5b9050602002013561086f565b839063ffffffff61095716565b915060028060008787858181106105ab57fe5b90506020020135815260200190815260200160002060010160149054906101000a900460ff1660028111156105dc57fe5b14610631576040805160e560020a62461bcd02815260206004820152601a60248201527f626c6f636b207374617465206973206e6f7420636c61696d6564000000000000604482015290519081900360640190fd5b600101610565565b8484604051808383602002808284376040805191909301819003812088825292519295503394507fb1edf40adb1abba7ef019c51048fb2da24246512f4e7c1dd75061e727298c2fb9350829003602001919050a36000821161070b576040805160e560020a62461bcd02815260206004820152602a60248201527f746f74616c20636f696e7320746f206d696e74206d757374206265206772656160448201527f746572207468616e203000000000000000000000000000000000000000000000606482015290519081900360840190fd5b604080517f40c10f1900000000000000000000000000000000000000000000000000000000815233600482015260248101849052905173675b45856257ceef650100c7ca1b2e8c6ff42e7c916340c10f199160448083019260209291908290030181600087803b15801561077e57600080fd5b505af1158015610792573d6000803e3d6000fd5b505050506040513d60208110156107a857600080fd5b50511515610800576040805160e560020a62461bcd02815260206004820152601560248201527f756e61626c6520746f206d696e7420746f6b656e730000000000000000000000604482015290519081900360640190fd5b506001949350505050565b60008054600160a060020a0316331461082357600080fd5b33ff5b670429d069189e000081565b60026020526000908152604090208054600190910154600160a060020a0381169060a060020a900460ff1683565b600054600160a060020a031681565b6000818152600260205260408120600101548290600160a060020a0316331461089757600080fd5b82600160008281526002602081905260409091206001015460a060020a900460ff16908111156108c357fe5b146108cd57600080fd5b83600160008281526002602081905260409091206001015460a060020a900460ff16908111156108f957fe5b1461090357600080fd5b505050600091825250600260205260409020600101805474ff0000000000000000000000000000000000000000191674020000000000000000000000000000000000000000179055670429d069189e000090565b60008282018381101561096957600080fd5b9392505050565b604080516060810182526000808252602082018190529091820152905600a165627a7a72305820ce6281b312ff3fd170205e4e90dfddb9e51359bb004bba19d9efc85096d68fcc0029`
+const MergedMinerValidatorBin = `608060405234801561001057600080fd5b50610019610107565b60018054600160a060020a031916331781556040805160608101825243815241602082015291908201524360028181556000918252600460209081526040928390208451815590840151600182018054600160a060020a031916600160a060020a039092169190911780825593850151949550859491939192909160a060020a60ff02191690740100000000000000000000000000000000000000009084908111156100c157fe5b0217905550506040805160008152905143925041917f607bba4a16235877e634164f23916760adfb2e9a596e6e1f691347e944a6bcc5919081900360200190a350610125565b60408051606081018252600080825260208201819052909182015290565b610beb806101346000396000f3006080604052600436106100ae5763ffffffff7c010000000000000000000000000000000000000000000000000000000060003504166325ceb4b281146100b35780632722692c146100dc5780633218ebcc146101035780639d76ea5814610118578063be72ab5914610149578063deb78ab61461015e578063e2bfcb421461017f578063ed2d1d9e1461019f578063f2477f7c146101b4578063f25b3f99146101c9578063f851a4401461021c575b600080fd5b3480156100bf57600080fd5b506100c8610231565b604080519115158252519081900360200190f35b3480156100e857600080fd5b506100f161058c565b60408051918252519081900360200190f35b34801561010f57600080fd5b506100f1610592565b34801561012457600080fd5b5061012d61059e565b60408051600160a060020a039092168252519081900360200190f35b34801561015557600080fd5b5061012d6105ad565b34801561016a57600080fd5b506100c8600160a060020a03600435166105bc565b34801561018b57600080fd5b506100c86004803560248101910135610677565b3480156101ab57600080fd5b506100c8610a3e565b3480156101c057600080fd5b506100f1610a5b565b3480156101d557600080fd5b506101e1600435610a67565b60408051848152600160a060020a038416602082015290810182600281111561020657fe5b60ff168152602001935050505060405180910390f35b34801561022857600080fd5b5061012d610a95565b600061023b610ba1565b436000808281526004602052604090206001015460a060020a900460ff16600281111561026457fe5b1461026e57600080fd5b60025443908114156102f0576040805160e560020a62461bcd02815260206004820152603860248201527f756e61626c6520746f207375626d697420696e666f726d6174696f6e20666f7260448201527f20616c7265616479207375626d697474656420626c6f636b0000000000000000606482015290519081900360840190fd5b600354604080517fe695751400000000000000000000000000000000000000000000000000000000815290513092600160a060020a03169163e6957514916004808301926020929190829003018186803b15801561034d57600080fd5b505afa158015610361573d6000803e3d6000fd5b505050506040513d602081101561037757600080fd5b5051600160a060020a03161461038c57600080fd5b6040805160608101825243808252416020808401918252600184860181815260028581556000958652600490935295909320845181559151928201805473ffffffffffffffffffffffffffffffffffffffff1916600160a060020a0390941693909317808455945193975087949193929174ff000000000000000000000000000000000000000019169060a060020a90849081111561042757fe5b02179055505060408051338152905143925041917f607bba4a16235877e634164f23916760adfb2e9a596e6e1f691347e944a6bcc5919081900360200190a3600354604080517f40c10f190000000000000000000000000000000000000000000000000000000081523360048201526706f05b59d3b2000060248201529051600160a060020a03909216916340c10f19916044808201926020929091908290030181600087803b1580156104da57600080fd5b505af11580156104ee573d6000803e3d6000fd5b505050506040513d602081101561050457600080fd5b50511515610582576040805160e560020a62461bcd02815260206004820152602c60248201527f6661696c656420746f207472616e736665722072657761726420746f20626c6f60448201527f636b207375626d69747465720000000000000000000000000000000000000000606482015290519081900360840190fd5b6001935050505090565b60025481565b6706f05b59d3b2000081565b600054600160a060020a031681565b600354600160a060020a031681565b600154600090600160a060020a031633146105d657600080fd5b600054600160a060020a031615610637576040805160e560020a62461bcd02815260206004820152601d60248201527f746f6b656e2061646472657373206d757374206e6f7420626520736574000000604482015290519081900360640190fd5b5060008054600160a060020a03831673ffffffffffffffffffffffffffffffffffffffff1991821681179092556003805490911690911790556001919050565b600354604080517fe69575140000000000000000000000000000000000000000000000000000000081529051600092839283923092600160a060020a03169163e6957514916004808301926020929190829003018186803b1580156106db57600080fd5b505afa1580156106ef573d6000803e3d6000fd5b505050506040513d602081101561070557600080fd5b5051600160a060020a03161461071a57600080fd5b6014841115610799576040805160e560020a62461bcd02815260206004820152602760248201527f63616e206f6e6c7920636c61696d20757020746f20323020726577617264732060448201527f6174206f6e636500000000000000000000000000000000000000000000000000606482015290519081900360840190fd5b5060005b83811015610872576107d06107c38686848181106107b757fe5b90506020020135610aa4565b839063ffffffff610b8816565b91506002600460008787858181106107e457fe5b90506020020135815260200190815260200160002060010160149054906101000a900460ff16600281111561081557fe5b1461086a576040805160e560020a62461bcd02815260206004820152601a60248201527f626c6f636b207374617465206973206e6f7420636c61696d6564000000000000604482015290519081900360640190fd5b60010161079d565b8484604051808383602002808284376040805191909301819003812088825292519295503394507fb1edf40adb1abba7ef019c51048fb2da24246512f4e7c1dd75061e727298c2fb9350829003602001919050a360008211610944576040805160e560020a62461bcd02815260206004820152602a60248201527f746f74616c20636f696e7320746f206d696e74206d757374206265206772656160448201527f746572207468616e203000000000000000000000000000000000000000000000606482015290519081900360840190fd5b600354604080517f40c10f19000000000000000000000000000000000000000000000000000000008152336004820152602481018590529051600160a060020a03909216916340c10f19916044808201926020929091908290030181600087803b1580156109b157600080fd5b505af11580156109c5573d6000803e3d6000fd5b505050506040513d60208110156109db57600080fd5b50511515610a33576040805160e560020a62461bcd02815260206004820152601560248201527f756e61626c6520746f206d696e7420746f6b656e730000000000000000000000604482015290519081900360640190fd5b506001949350505050565b600154600090600160a060020a03163314610a5857600080fd5b33ff5b670429d069189e000081565b60046020526000908152604090208054600190910154600160a060020a0381169060a060020a900460ff1683565b600154600160a060020a031681565b6000818152600460205260408120600101548290600160a060020a03163314610acc57600080fd5b82600160008281526004602052604090206001015460a060020a900460ff166002811115610af657fe5b14610b0057600080fd5b83600160008281526004602052604090206001015460a060020a900460ff166002811115610b2a57fe5b14610b3457600080fd5b505050600091825250600460205260409020600101805474ff0000000000000000000000000000000000000000191674020000000000000000000000000000000000000000179055670429d069189e000090565b600082820183811015610b9a57600080fd5b9392505050565b604080516060810182526000808252602082018190529091820152905600a165627a7a7230582012011e466d6ebe6898c4b290e64b528ee8d94d901116ef7a852a4999ab055cfe0029`
 
 // DeployMergedMinerValidator deploys a new Ethereum contract, binding an instance of MergedMinerValidator to it.
 func DeployMergedMinerValidator(auth *bind.TransactOpts, backend bind.ContractBackend) (common.Address, *types.Transaction, *MergedMinerValidator, error) {
@@ -202,32 +202,6 @@ func (_MergedMinerValidator *MergedMinerValidatorCallerSession) BLOCKREWARD() (*
 	return _MergedMinerValidator.Contract.BLOCKREWARD(&_MergedMinerValidator.CallOpts)
 }
 
-// RTI is a free data retrieval call binding the contract method 0x58e1c174.
-//
-// Solidity: function RTI() constant returns(address)
-func (_MergedMinerValidator *MergedMinerValidatorCaller) RTI(opts *bind.CallOpts) (common.Address, error) {
-	var (
-		ret0 = new(common.Address)
-	)
-	out := ret0
-	err := _MergedMinerValidator.contract.Call(opts, out, "RTI")
-	return *ret0, err
-}
-
-// RTI is a free data retrieval call binding the contract method 0x58e1c174.
-//
-// Solidity: function RTI() constant returns(address)
-func (_MergedMinerValidator *MergedMinerValidatorSession) RTI() (common.Address, error) {
-	return _MergedMinerValidator.Contract.RTI(&_MergedMinerValidator.CallOpts)
-}
-
-// RTI is a free data retrieval call binding the contract method 0x58e1c174.
-//
-// Solidity: function RTI() constant returns(address)
-func (_MergedMinerValidator *MergedMinerValidatorCallerSession) RTI() (common.Address, error) {
-	return _MergedMinerValidator.Contract.RTI(&_MergedMinerValidator.CallOpts)
-}
-
 // SUBMISSIONREWARD is a free data retrieval call binding the contract method 0x3218ebcc.
 //
 // Solidity: function SUBMISSIONREWARD() constant returns(uint256)
@@ -252,32 +226,6 @@ func (_MergedMinerValidator *MergedMinerValidatorSession) SUBMISSIONREWARD() (*b
 // Solidity: function SUBMISSIONREWARD() constant returns(uint256)
 func (_MergedMinerValidator *MergedMinerValidatorCallerSession) SUBMISSIONREWARD() (*big.Int, error) {
 	return _MergedMinerValidator.Contract.SUBMISSIONREWARD(&_MergedMinerValidator.CallOpts)
-}
-
-// TOKENADDRESS is a free data retrieval call binding the contract method 0x516f8986.
-//
-// Solidity: function TOKENADDRESS() constant returns(address)
-func (_MergedMinerValidator *MergedMinerValidatorCaller) TOKENADDRESS(opts *bind.CallOpts) (common.Address, error) {
-	var (
-		ret0 = new(common.Address)
-	)
-	out := ret0
-	err := _MergedMinerValidator.contract.Call(opts, out, "TOKENADDRESS")
-	return *ret0, err
-}
-
-// TOKENADDRESS is a free data retrieval call binding the contract method 0x516f8986.
-//
-// Solidity: function TOKENADDRESS() constant returns(address)
-func (_MergedMinerValidator *MergedMinerValidatorSession) TOKENADDRESS() (common.Address, error) {
-	return _MergedMinerValidator.Contract.TOKENADDRESS(&_MergedMinerValidator.CallOpts)
-}
-
-// TOKENADDRESS is a free data retrieval call binding the contract method 0x516f8986.
-//
-// Solidity: function TOKENADDRESS() constant returns(address)
-func (_MergedMinerValidator *MergedMinerValidatorCallerSession) TOKENADDRESS() (common.Address, error) {
-	return _MergedMinerValidator.Contract.TOKENADDRESS(&_MergedMinerValidator.CallOpts)
 }
 
 // Admin is a free data retrieval call binding the contract method 0xf851a440.
@@ -372,6 +320,58 @@ func (_MergedMinerValidator *MergedMinerValidatorCallerSession) LastBlockSet() (
 	return _MergedMinerValidator.Contract.LastBlockSet(&_MergedMinerValidator.CallOpts)
 }
 
+// RtI is a free data retrieval call binding the contract method 0xbe72ab59.
+//
+// Solidity: function rtI() constant returns(address)
+func (_MergedMinerValidator *MergedMinerValidatorCaller) RtI(opts *bind.CallOpts) (common.Address, error) {
+	var (
+		ret0 = new(common.Address)
+	)
+	out := ret0
+	err := _MergedMinerValidator.contract.Call(opts, out, "rtI")
+	return *ret0, err
+}
+
+// RtI is a free data retrieval call binding the contract method 0xbe72ab59.
+//
+// Solidity: function rtI() constant returns(address)
+func (_MergedMinerValidator *MergedMinerValidatorSession) RtI() (common.Address, error) {
+	return _MergedMinerValidator.Contract.RtI(&_MergedMinerValidator.CallOpts)
+}
+
+// RtI is a free data retrieval call binding the contract method 0xbe72ab59.
+//
+// Solidity: function rtI() constant returns(address)
+func (_MergedMinerValidator *MergedMinerValidatorCallerSession) RtI() (common.Address, error) {
+	return _MergedMinerValidator.Contract.RtI(&_MergedMinerValidator.CallOpts)
+}
+
+// TokenAddress is a free data retrieval call binding the contract method 0x9d76ea58.
+//
+// Solidity: function tokenAddress() constant returns(address)
+func (_MergedMinerValidator *MergedMinerValidatorCaller) TokenAddress(opts *bind.CallOpts) (common.Address, error) {
+	var (
+		ret0 = new(common.Address)
+	)
+	out := ret0
+	err := _MergedMinerValidator.contract.Call(opts, out, "tokenAddress")
+	return *ret0, err
+}
+
+// TokenAddress is a free data retrieval call binding the contract method 0x9d76ea58.
+//
+// Solidity: function tokenAddress() constant returns(address)
+func (_MergedMinerValidator *MergedMinerValidatorSession) TokenAddress() (common.Address, error) {
+	return _MergedMinerValidator.Contract.TokenAddress(&_MergedMinerValidator.CallOpts)
+}
+
+// TokenAddress is a free data retrieval call binding the contract method 0x9d76ea58.
+//
+// Solidity: function tokenAddress() constant returns(address)
+func (_MergedMinerValidator *MergedMinerValidatorCallerSession) TokenAddress() (common.Address, error) {
+	return _MergedMinerValidator.Contract.TokenAddress(&_MergedMinerValidator.CallOpts)
+}
+
 // BulkClaimReward is a paid mutator transaction binding the contract method 0xe2bfcb42.
 //
 // Solidity: function bulkClaimReward(_blockNumbers uint256[]) returns(bool)
@@ -412,6 +412,27 @@ func (_MergedMinerValidator *MergedMinerValidatorSession) GoodNightSweetPrince()
 // Solidity: function goodNightSweetPrince() returns(bool)
 func (_MergedMinerValidator *MergedMinerValidatorTransactorSession) GoodNightSweetPrince() (*types.Transaction, error) {
 	return _MergedMinerValidator.Contract.GoodNightSweetPrince(&_MergedMinerValidator.TransactOpts)
+}
+
+// SetRTI is a paid mutator transaction binding the contract method 0xdeb78ab6.
+//
+// Solidity: function setRTI(_tokenAddress address) returns(bool)
+func (_MergedMinerValidator *MergedMinerValidatorTransactor) SetRTI(opts *bind.TransactOpts, _tokenAddress common.Address) (*types.Transaction, error) {
+	return _MergedMinerValidator.contract.Transact(opts, "setRTI", _tokenAddress)
+}
+
+// SetRTI is a paid mutator transaction binding the contract method 0xdeb78ab6.
+//
+// Solidity: function setRTI(_tokenAddress address) returns(bool)
+func (_MergedMinerValidator *MergedMinerValidatorSession) SetRTI(_tokenAddress common.Address) (*types.Transaction, error) {
+	return _MergedMinerValidator.Contract.SetRTI(&_MergedMinerValidator.TransactOpts, _tokenAddress)
+}
+
+// SetRTI is a paid mutator transaction binding the contract method 0xdeb78ab6.
+//
+// Solidity: function setRTI(_tokenAddress address) returns(bool)
+func (_MergedMinerValidator *MergedMinerValidatorTransactorSession) SetRTI(_tokenAddress common.Address) (*types.Transaction, error) {
+	return _MergedMinerValidator.Contract.SetRTI(&_MergedMinerValidator.TransactOpts, _tokenAddress)
 }
 
 // SubmitBlock is a paid mutator transaction binding the contract method 0x25ceb4b2.
