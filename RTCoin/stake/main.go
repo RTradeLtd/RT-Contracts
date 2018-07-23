@@ -6,7 +6,6 @@ import (
 	"log"
 	"math/big"
 	"strings"
-	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -65,32 +64,9 @@ func main() {
 	if err != nil {
 		log.Fatal("failed to create rtc handler", err)
 	}
-	totalSupply, err := rtc.TotalSupply(nil)
-	if err != nil {
-		log.Fatal("failed to get total supply", err)
-	}
-
-	// approve
-	tx, err := rtc.Approve(auth, common.HexToAddress(stakeAddress), totalSupply)
-	if err != nil {
-		log.Fatal("failed to approve staking contract", err)
-	}
-	_, err = bind.WaitMined(context.Background(), client, tx)
-	if err != nil {
-		log.Fatal("failed to wait for tx", err)
-	}
-
-	// allowance
-	allowance, err := rtc.Allowance(nil, auth.From, common.HexToAddress(stakeAddress))
-	if err != nil {
-		log.Fatal("failed to get allowance ", err)
-	}
-	if allowance.Cmp(totalSupply) != 0 {
-		log.Fatal("failed to set a proper allownace")
-	}
 
 	// set stake
-	tx, err = rtc.SetStakeContract(auth, common.HexToAddress(stakeAddress))
+	tx, err := rtc.SetStakeContract(auth, common.HexToAddress(stakeAddress))
 	if err != nil {
 		log.Fatal("failed to set stake contract", err)
 	}
@@ -117,6 +93,54 @@ func main() {
 		log.Fatal("failed to create stake contract", err)
 	}
 
+	totalSupply, err := rtc.TotalSupply(nil)
+	if err != nil {
+		log.Fatal("failed to get ")
+	}
+
+	// approve the stake contract
+	tx, err = rtc.Approve(auth, common.HexToAddress(stakeAddress), totalSupply)
+	if err != nil {
+		log.Fatal("failed to approve ", err)
+	}
+
+	_, err = bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		log.Fatal("failed to wait for tx to be mined", err)
+	}
+
+	// enable token transfers
+	tx, err = rtc.ThawTransfers(auth)
+	if err != nil {
+		log.Fatal("failed to enable token transfers ", err)
+	}
+	_, err = bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		log.Fatal("failed to wait for transaction to be mined ", err)
+	}
+
+	transfersFrozen, err := rtc.TransfersFrozen(nil)
+	if err != nil {
+		log.Fatal("failed to get tx frozen status", err)
+	}
+
+	if transfersFrozen {
+		log.Fatal("transfers still frozen")
+	}
+
+	fmt.Println("transfer frozen status ", transfersFrozen)
+
+	num := new(big.Int).Mul(big.NewInt(1000000000000000000), big.NewInt(100))
+	// attempt a transfer
+	tx, err = rtc.Transfer(auth, common.HexToAddress(stakeAddress), num)
+	if err != nil {
+		log.Fatal("failed to transfer tokens ", err)
+	}
+	_, err = bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		log.Fatal("failed to wait for tx mined ", err)
+	}
+
 	// set the RTC address on the stake contract
 	tx, err = stake.SetRTI(auth, common.HexToAddress(rtcAddress))
 	if err != nil {
@@ -127,95 +151,26 @@ func main() {
 		log.Fatal("failed to wait for tx to be mined ", err)
 	}
 
-	auth.GasLimit = 275000
-	// enable new stakes
-	tx, err = stake.AllowNewStakes(auth)
+	// make sure we can mint
+	canMint, err := stake.CanMint(nil)
 	if err != nil {
-		log.Fatal("failed to enable stakes", err)
+		log.Fatal("failed to get can mint status ", err)
 	}
-	_, err = bind.WaitMined(context.Background(), client, tx)
-	if err != nil {
-		log.Fatal("failed to wait for tx to be mined", err)
+	if !canMint {
+		log.Fatal("can't mint")
 	}
 
-	stakesAllowed, err := stake.NewStakesAllowed(nil)
-	if err != nil {
-		log.Fatal("failed to check if stakes allowed ", err)
-	}
-
-	if !stakesAllowed {
-		log.Fatal("failed to enable new stakes")
-	}
+	fmt.Println("mint status ", canMint)
 
 	// deposit stakes
-	num := new(big.Int).Mul(big.NewInt(1000000000000000000), big.NewInt(3))
+	auth.GasLimit = 275000
 	tx, err = stake.DepositStake(auth, num)
 	if err != nil {
-		log.Fatal("failed to deposit stake", err)
+		log.Fatal("failed to deposit stake ", err)
 	}
-	_, err = bind.WaitMined(context.Background(), client, tx)
+	rcpt, err := bind.WaitMined(context.Background(), client, tx)
 	if err != nil {
-		log.Fatal("failed to wait for tx to be mined")
+		log.Fatal("failed to wait for tx to be mined ", err)
 	}
-
-	stakeStatus, err := stake.Stakes(nil, auth.From, big.NewInt(0))
-	if err != nil {
-		log.Fatal("failed to get stake status", err)
-	}
-
-	fmt.Printf("%+v\n", stakeStatus)
-
-	// mint tokens
-	tx, err = stake.Mint(auth, big.NewInt(0))
-	if err != nil {
-		log.Fatal("failed to mint", err)
-	}
-	_, err = bind.WaitMined(context.Background(), client, tx)
-	if err != nil {
-		log.Fatal("failed to wait for tx to be mined", err)
-	}
-
-	fmt.Println("waiting for blocks and time to pass")
-	time.Sleep(time.Minute * 3)
-
-	tx, err = stake.WithdrawInitialStake(auth, big.NewInt(0))
-	if err != nil {
-		log.Fatal("failed to withdraw initial stake", err)
-	}
-	_, err = bind.WaitMined(context.Background(), client, tx)
-	if err != nil {
-		log.Fatal("failed to wait for tx to be mined", err)
-	}
-
-	stakeStatus, err = stake.Stakes(nil, auth.From, big.NewInt(0))
-	if err != nil {
-		log.Fatal("failed to get stake status", err)
-	}
-
-	if stakeStatus.State != uint8(2) {
-		fmt.Printf("%+v\n", stakeStatus)
-		log.Fatal("failed to close out stake and withdraw initial funds")
-	}
-
-	if stakeStatus.TotalCoinsToMint.Cmp(stakeStatus.CoinsMinted) == 0 {
-		log.Fatal("invalid stake detected, coins minted should  not be total coins minted yet")
-	}
-
-	tx, err = stake.Mint(auth, big.NewInt(0))
-	if err != nil {
-		log.Fatal("failed to mint", err)
-	}
-	_, err = bind.WaitMined(context.Background(), client, tx)
-	if err != nil {
-		log.Fatal("failed to wait for tx to be mined", err)
-	}
-
-	stakeStatus, err = stake.Stakes(nil, auth.From, big.NewInt(0))
-	if err != nil {
-		log.Fatal("failed to get stake status", err)
-	}
-	if stakeStatus.TotalCoinsToMint.Cmp(stakeStatus.CoinsMinted) != 0 {
-		log.Fatal("invalid stake detected, coins minted should  equal total coins mint")
-	}
-	fmt.Printf("%+v\n", stakeStatus)
+	fmt.Printf("%+v\n", rcpt)
 }

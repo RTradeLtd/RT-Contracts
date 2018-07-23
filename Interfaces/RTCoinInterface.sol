@@ -7,9 +7,9 @@ interface RTCoinInterface {
 
     function thawTransfers() external returns (bool);
 
-    function transfer(address _recipient, uint256 _amount) external returns (bool transferred);
+    function transfer(address _recipient, uint256 _amount) external returns (bool);
 
-    function transferFrom(address _owner, address _recipient, uint256 _amount) external returns (bool transferredFrom);
+    function transferFrom(address _owner, address _recipient, uint256 _amount) external returns (bool);
 
     function approve(address _spender, uint256 _amount) external returns (bool approved);
     /**GETTERS */
