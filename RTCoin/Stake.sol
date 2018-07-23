@@ -234,7 +234,7 @@ contract Stake {
         // emit an event
         emit StakeDeposited(msg.sender, stakeCount, totalCoinsMinted, releaseDate, blockReleased);
         // transfer tokens
-        require(RTI.transferFrom(msg.sender, address(this), _numRTC), "transfer from failed, likely needs approval");
+       // require(RTI.transferFrom(msg.sender, address(this), _numRTC), "transfer from failed, likely needs approval");
         return true;
     }
 

@@ -162,6 +162,26 @@ func main() {
 
 	fmt.Println("mint status ", canMint)
 
+	// enable staking
+	tx, err = stake.AllowNewStakes(auth)
+	if err != nil {
+		log.Fatal("failed to enable new stakes ", err)
+	}
+
+	_, err = bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		log.Fatal("failed to wait for tx to be mined ", err)
+	}
+
+	stakesAllowed, err := stake.NewStakesAllowed(nil)
+	if err != nil {
+		log.Fatal("failed to check if stakes are allowed ", err)
+	}
+	if !stakesAllowed {
+		log.Fatal("failed to enable new stakes")
+	}
+	fmt.Println("stake enabled status ", stakesAllowed)
+
 	// deposit stakes
 	auth.GasLimit = 275000
 	tx, err = stake.DepositStake(auth, num)
