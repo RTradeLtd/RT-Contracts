@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/big"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -183,14 +184,54 @@ func main() {
 	fmt.Println("stake enabled status ", stakesAllowed)
 
 	// deposit stakes
-	auth.GasLimit = 275000
+	auth.GasLimit = 350000
 	tx, err = stake.DepositStake(auth, num)
 	if err != nil {
 		log.Fatal("failed to deposit stake ", err)
+	}
+	_, err = bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		log.Fatal("failed to wait for tx to be mined ", err)
+	}
+
+	fmt.Println("waiting for time  and blocks to pass")
+	time.Sleep(time.Minute * 3)
+
+	tx, err = stake.WithdrawInitialStake(auth, big.NewInt(0))
+	if err != nil {
+		log.Fatal("failed to withdraw initial stake")
 	}
 	rcpt, err := bind.WaitMined(context.Background(), client, tx)
 	if err != nil {
 		log.Fatal("failed to wait for tx to be mined ", err)
 	}
+
 	fmt.Printf("%+v\n", rcpt)
+
+	stakeStatus, err := stake.Stakes(nil, auth.From, big.NewInt(0))
+	if err != nil {
+		log.Fatal("failed to get stak estatus ", err)
+	}
+
+	if stakeStatus.State != uint8(2) {
+		log.Fatal("failed to close out initial stake and withdraw initial stake")
+	}
+
+	fmt.Printf("stake successfully closed\n%+v\n", stakeStatus)
+
+	tx, err = stake.Mint(auth, big.NewInt(0))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	stakeStatus, err = stake.Stakes(nil, auth.From, big.NewInt(0))
+	if err != nil {
+		log.Fatal("failed to get stak estatus ", err)
+	}
+
+	fmt.Printf("%+v\n", stakeStatus)
 }
