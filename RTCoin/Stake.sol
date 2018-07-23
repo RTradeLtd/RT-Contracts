@@ -19,13 +19,13 @@ contract Stake {
     // NOTE ON MULTIPLIER: this is right now set to 10% this may however change before token is released
     uint256 constant private MULTIPLIER = 100000000000000000;
     // BLOCKHOLDPERIOD is used to determine how many blocks a stake is held for, and how many blocks will mint tokens
-    uint256 constant private BLOCKHOLDPERIOD = 2103840;
+    uint256 constant private BLOCKHOLDPERIOD = 5;
     // BLOCKSEC uses 15 seconds as an average block time. Ultimately the only thing this "restricts" is the time at which a stake is withdrawn
     // Yes, we use block timestamps which can be influenced to some degree by miners, however since this only determines the time at which an initial stake can be withdrawn at
     // due to the fact that this is also limited by block height, it is an acceptable risk
     uint256 constant private BLOCKSEC = 15;
     // this is the address of the RTC token contract
-    address  public TOKENADDRESS = 0x3fDe03720917246B73ba532e4650c656D6020578;
+    address  public TOKENADDRESS = 0xE9AEc23c620681a59e2111785b0D35a90498128f;
     // this is the interface used to interact with the RTC Token
     RTCoinInterface   public RTI = RTCoinInterface(TOKENADDRESS);
 
