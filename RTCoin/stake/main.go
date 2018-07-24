@@ -189,25 +189,43 @@ func main() {
 	if err != nil {
 		log.Fatal("failed to deposit stake ", err)
 	}
-	_, err = bind.WaitMined(context.Background(), client, tx)
-	if err != nil {
-		log.Fatal("failed to wait for tx to be mined ", err)
-	}
-
-	fmt.Println("waiting for time  and blocks to pass")
-	time.Sleep(time.Minute * 3)
-
-	tx, err = stake.WithdrawInitialStake(auth, big.NewInt(0))
-	if err != nil {
-		log.Fatal("failed to withdraw initial stake")
-	}
 	rcpt, err := bind.WaitMined(context.Background(), client, tx)
 	if err != nil {
 		log.Fatal("failed to wait for tx to be mined ", err)
 	}
+	if len(rcpt.Logs) == 0 {
+		log.Fatal("no event logs detected")
+	}
 
-	fmt.Printf("%+v\n", rcpt)
+	fmt.Println("Deposit stake gas used: ", rcpt.CumulativeGasUsed)
+	fmt.Println("waiting for time  and blocks to pass")
+	time.Sleep(time.Minute * 3)
 
+	prevWithdrawBalance, err := rtc.BalanceOf(nil, auth.From)
+	if err != nil {
+		log.Fatal("failed to get balance of ", err)
+	}
+	tx, err = stake.WithdrawInitialStake(auth, big.NewInt(0))
+	if err != nil {
+		log.Fatal("failed to withdraw initial stake")
+	}
+	rcpt, err = bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		log.Fatal("failed to wait for tx to be mined ", err)
+	}
+	if len(rcpt.Logs) == 0 {
+		log.Fatal("failed to generate event logs")
+	}
+	fmt.Println("withdraw initial stake gas used ", rcpt.CumulativeGasUsed)
+	postWithdrawBalance, err := rtc.BalanceOf(nil, auth.From)
+	if err != nil {
+		log.Fatal("failed to get balance of ", err)
+	}
+	fmt.Println("prev initial stake withdraw balance ", prevWithdrawBalance)
+	fmt.Println("post initial withdraw       balance ", postWithdrawBalance)
+	if postWithdrawBalance.Cmp(prevWithdrawBalance) == 0 {
+		log.Fatal("initial stake withdrawal failed")
+	}
 	stakeStatus, err := stake.Stakes(nil, auth.From, big.NewInt(0))
 	if err != nil {
 		log.Fatal("failed to get stak estatus ", err)
@@ -224,10 +242,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	_, err = bind.WaitMined(context.Background(), client, tx)
+	rcpt, err = bind.WaitMined(context.Background(), client, tx)
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println("mint gas used ", rcpt.CumulativeGasUsed)
 	stakeStatus, err = stake.Stakes(nil, auth.From, big.NewInt(0))
 	if err != nil {
 		log.Fatal("failed to get stak estatus ", err)

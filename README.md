@@ -9,11 +9,19 @@ RTCoin (RTC) is an "mmPOS" (merged-mining Proof Of Stake) ERC20 compliant utilit
 
 By default, token transfers are frozen so they need to manually be enabled after deployment
 
-### RTC - Proof Of Stake
+### Proof Of Stake
 
 By utilizing the `Stake.sol` smart contract, users are able to stake, at a minimum, 1RTC for a period of 2103840 blocks, generating 10% (note, this may be subject to change before release) of the initial stake as newly minted RTC tokens over the lockup time (2103840 blocks). The staking system features per-block coin generation, allowing the user to mint coins every single block directly to their Ethereum address. After a period of 2103840 blocks, and after 31557600 (we reach this figure by taking an avg 15 second block time, multiplied by the lockup blocks) seconds have passed, the initial stake can be withdrawn to the users wallet.
 
-#### RTC - Proof Of Stake Setup
+#### Objectives - Proof Of Stake
+
+* [x] - Allow per block coin minting
+* [x] - Allow per block coin mint withdrawal
+* [x] - Allow staking for a period of 2103840 blocks
+* [x] - Allow coin mints to continue even if initial stake has been withdrawn
+* [x] - Do not allow initial stake withdrawal until 2103840 blocks, and after 31557600 seconds have passed since initial stake was deposited
+
+#### Proof Of Stake Setup
 
 Deployment:
 1) Ensure that the RTC token is deployed, along with transfers enable
@@ -28,44 +36,65 @@ Interaction:
 3) Wait one block and you can start minting tokens
 4) After 2103840 blocks and (2103840 * 15 seconds) have passed you can withdraw your initial stake
 
-#### RTC - Proof Of Stake Tests
+#### Gas Usage - Proof Of Stake
+
+| function | gas |
+|----------|------|
+| deposit  stake | 278321 |
+| withdraw initial stake | 28796 |
+| mint | 71574|
+
+#### Proof Of Stake Tests
 
 The proof of stake tests are configured to use a block hold period of 5 blocks to allow for easy end-to-end tests
 
-### RTC - Merged Mining
+### Merged Mining
 
 Currently in development, a Merged Mining contract will allow anyone who mines a block on the Ethereum mainnet, to submit the block headers from the block which they mined to our Merged Mining contract, and be awarded freshly minted RTC! Currently the merged mining contract requires that each block, the block hash, and the coinbase (miner) are stored in a smart contract, allowing the miner to claim their minted tokens whenever. The ability to submit block hash and coinbase information is incentivized and can also mint RTC. The first person to submit the blockhash and coinbase information for a given block will receive a small amount of RTC, directly minted to their address. We incentivize storing this information as the user has to pay for the gas costs to invoke the transaction.
 
-#### RTC - Merged Mining Statistics
+#### Objectives - Merged Mining
+
+* [x] Incentivize Block Information (block number, coinbase) Submission 
+* [x] Reward ETH block miners who have had their block information for the mined block submitted
+
+#### Merged Mining Setup
+
+Deployment
+1) Set RTCoin Interface on merged mining contract
+2) Set Merged Mining contract address on RTCoin contract
+
+##### Gas Usage - Merged Mining
+
+| function | gas |
+| ---------|------|
+| submit block | 92428 |
+| bulk reward claim (10 rewards) | 119239 |
+
+#### Statistics
 
 The total supply increase based off a starting RTC supply of 61.6M is 3.15% if all rewards are claimed. This roughly equates to 242750.7375USD/year and 1942005.9RTC/year
-NOTE: These figures aren't yet finalized
 
-##### Merged Mined Block Rewards
+##### Block Rewards
 
 With an average 13 second block time, if every block had their rewards claimed an average 728252.1 RTC would be minted a year with a reward of 0.3RTC
 
 Formula to reach this is:
 `(seconds per year/block time seconds) * (blocks mined reward)`
 
-##### Merged Mined Block Information Submission
+##### Block Information Submission
 
 With an average 13 second block time, if all blocks have their information submitted, an average 1213753.8RTC would be minted a year with a reward of 0.5RTC per block information submitted
 
 Formula to reach this is:
 `(seconds per year/block time seconds) * (block submission reward)`
 
-##### Gas Usage
 
-Of natural concern for this, is the gas costs involved, which thankfully is fairly reasonable.
-Block Information Submission: ~92428 gas
-Bulk Reward Claim (10 rewards): ~119239 gas
 
 ##### Limitations
 
 Block number, and coinbase will only be stored when the transaction is mined. If you want your transaction to include the same information from the block right after you submit your transaction you will need to increase your gas price appropriately in order to ensure the transaction is mined in time. Otherwise, the information for the block at which at which your TX is included will be what is stored in the contract.
 
-## Thanks
+### Thanks
 
-Thanks to @Figs999 for the EventStorage.sol contract which is serving as a basis for block header parsing. 
-    > https://github.com/figs999/Ethereum/blob/master/EventStorage.sol
+Thanks to Figs999 for the EventStorage.sol contract which is serving as a basis for block header parsing.
+    > [EventStorage.sol](https://github.com/figs999/Ethereum/blob/master/EventStorage.sol)
