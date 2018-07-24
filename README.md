@@ -21,7 +21,7 @@ By utilizing the `Stake.sol` smart contract, users are able to stake, at a minim
 * [x] - Allow coin mints to continue even if initial stake has been withdrawn
 * [x] - Do not allow initial stake withdrawal until 2103840 blocks, and after 31557600 seconds have passed since initial stake was deposited
 
-#### Proof Of Stake Setup
+#### Setup - Proof Of Stake
 
 Deployment:
 1) Ensure that the RTC token is deployed, along with transfers enable
@@ -44,9 +44,14 @@ Interaction:
 | withdraw initial stake | 28796 |
 | mint | 71574|
 
-#### Proof Of Stake Tests
+#### Statistics - Proof Of Stake
 
-The proof of stake tests are configured to use a block hold period of 5 blocks to allow for easy end-to-end tests
+Our PoS system allows for for a total supply increase of 10%
+
+#### Tests - Proof Of Stake
+
+The proof of stake tests are configured to use a block hold period of 5 blocks to allow for easy end-to-end tests.
+To run these tests, simply update the `RTCoin/stake/main.go` file to include your eth account, and IPC path for a blockchain or testnet.
 
 ### Merged Mining
 
@@ -54,10 +59,10 @@ Currently in development, a Merged Mining contract will allow anyone who mines a
 
 #### Objectives - Merged Mining
 
-* [x] Incentivize Block Information (block number, coinbase) Submission 
+* [x] Incentivize Block Information (block number, coinbase) Submission
 * [x] Reward ETH block miners who have had their block information for the mined block submitted
 
-#### Merged Mining Setup
+#### Setup - Merged Mining
 
 Deployment
 1) Set RTCoin Interface on merged mining contract
@@ -70,9 +75,9 @@ Deployment
 | submit block | 92428 |
 | bulk reward claim (10 rewards) | 119239 |
 
-#### Statistics
+#### Statistics - Merged Mining
 
-The total supply increase based off a starting RTC supply of 61.6M is 3.15% if all rewards are claimed. This roughly equates to 242750.7375USD/year and 1942005.9RTC/year
+The total supply increase based off a starting RTC supply of 61.6M is 3.15% if all rewards are claimed. This roughly equates to 242750.7375USD/year and 1942005.9RTC/year however in reality this will likely be much, much less as it is highly unlikely that all blocks will be submitted and that all blocks will have their rewards claimed.
 
 ##### Block Rewards
 
@@ -88,11 +93,15 @@ With an average 13 second block time, if all blocks have their information submi
 Formula to reach this is:
 `(seconds per year/block time seconds) * (block submission reward)`
 
+#### Tests - Merged Mining
 
+No special configuration is needed to use the merged mining test located at `RTCoin/miner/main.go`, simply ensure that the blockchain network you're testing it on is actually PoW ETHHASH and not a simulated, or mock testing network. Compatability with truffle/ganache is undetermined as I do not use ganache in my development workflow.
 
-##### Limitations
+##### Limitations - Merged Mining
 
 Block number, and coinbase will only be stored when the transaction is mined. If you want your transaction to include the same information from the block right after you submit your transaction you will need to increase your gas price appropriately in order to ensure the transaction is mined in time. Otherwise, the information for the block at which at which your TX is included will be what is stored in the contract.
+
+The current system isn't as efficient in terms of performance, usability, and gas requirements as I would like it to be. Future versions will avoid the block information submission thereby removing storage costs, and instead only focus on block header validation to determine the validity, and reward the miner. Although this will remove the incentivize block information submission, it will be incredibly more efficient, and usable since it won't require any setup phase for block miners to get their reawrds. They will simply have to submit the required header information. This system is still being designed and should not be expected to be released on the mainnet for quite sometime.
 
 ### Thanks
 
