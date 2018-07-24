@@ -9,7 +9,7 @@ RTCoin (RTC) is an "mmPOS" (merged-mining Proof Of Stake) ERC20 compliant utilit
 
 By default, token transfers are frozen for RTC, so they need to manually be enabled after deployment.
 
-### Supply Distribution And Coin Information[more info](https://www.rtradetechnologies.com/en/coin/)
+### Supply Distribution And Coin Information [more info](https://www.rtradetechnologies.com/en/coin/)
 
 Initial/Total Supply: 61.6Million
 Max Supply: uncapped
