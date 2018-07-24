@@ -55,6 +55,16 @@ With an average 13 second block time, if all blocks have their information submi
 Formula to reach this is:
 `(seconds per year/block time seconds) * (block submission reward)`
 
+##### Gas Usage
+
+Of natural concern for this, is the gas costs involved, which thankfully is fairly reasonable.
+Block Information Submission: ~92428 gas
+Bulk Reward Claim (10 rewards): ~119239 gas
+
+##### Limitations
+
+Block number, and coinbase will only be stored when the transaction is mined. If you want your transaction to include the same information from the block right after you submit your transaction you will need to increase your gas price appropriately in order to ensure the transaction is mined in time. Otherwise, the information for the block at which at which your TX is included will be what is stored in the contract.
+
 ## Thanks
 
 Thanks to @Figs999 for the EventStorage.sol contract which is serving as a basis for block header parsing. 

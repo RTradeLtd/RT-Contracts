@@ -31,7 +31,7 @@ contract MergedMinerValidator {
     }
 
     mapping (uint256 => Blocks) public blocks;
-
+    mapping (uint256 => bytes) public hashedBlocks;
     event BlockInformationSubmitted(address indexed _coinbase, uint256 indexed _blockNumber, address _submitter);
     event MergedMinedRewardClaimed(address indexed _claimer, uint256[] indexed _blockNumbers, uint256 _totalReward);
 
@@ -62,7 +62,7 @@ contract MergedMinerValidator {
     }
 
     modifier notCurrentSetBlock(uint256 _blockNumber) {
-        require(_blockNumber != lastBlockSet, "unable to submit information for already submitted block");
+        require(_blockNumber > lastBlockSet, "unable to submit information for already submitted block");
         _;
     }
 
@@ -92,7 +92,7 @@ contract MergedMinerValidator {
     /** @notice Used to submit block hash, and block miner information for the current block
         * @dev Future iterations will avoid this process entirely, and use RLP encoded block headers to parse the data.
      */
-    function submitBlock() public nonSubmittedBlock(block.number) notCurrentSetBlock(block.number) canMint returns (bool) {
+    function submitBlock() public nonSubmittedBlock(block.number) notCurrentSetBlock(block.number) returns (bool) {
         Blocks memory b = Blocks({
             number: block.number,
             coinbase: block.coinbase,
@@ -105,6 +105,7 @@ contract MergedMinerValidator {
         require(rtI.mint(msg.sender, SUBMISSIONREWARD), "failed to transfer reward to block submitter");
         return true;
     }
+    
 
     /** @notice Used by a miner to claim their merged mined RTC
         * @param _blockNumber The block number of the block that the person mined
@@ -149,7 +150,7 @@ contract MergedMinerValidator {
         rtI = RTCoinInterface(_tokenAddress);
         return true;
     }
-    
+
     /** @notice Used to destroy the contract
      */
     function goodNightSweetPrince() public onlyAdmin returns (bool) {

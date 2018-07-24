@@ -132,6 +132,27 @@ func main() {
 	intAr := []*big.Int{}
 	intAr = append(intAr, lastBlockSubmitted)
 
+	for i := 0; i < 9; i++ {
+		tx, err = miner.SubmitBlock(auth)
+		if err != nil {
+			log.Fatal("failed to submit block information ", err)
+		}
+
+		rcpt, err := bind.WaitMined(context.Background(), client, tx)
+		if err != nil {
+			log.Fatal("failed to watch for tx to be mined")
+		}
+		if len(rcpt.Logs) == 0 {
+			log.Fatal("failed to emit any events")
+		}
+		fmt.Println("gas used ", rcpt.CumulativeGasUsed)
+		lastBlock, err := miner.LastBlockSet(nil)
+		if err != nil {
+			log.Fatal("failed to get last block set", err)
+		}
+		intAr = append(intAr, lastBlock)
+	}
+
 	tx, err = miner.BulkClaimReward(auth, intAr)
 	if err != nil {
 		log.Fatal("failed to submit reward claim ", err)
@@ -140,8 +161,8 @@ func main() {
 	if err != nil {
 		log.Fatal("failed to wait for transaction to be miend ", err)
 	}
-	fmt.Printf("%+v\n", rcpt)
-
+	fmt.Printf("reward claim receipt %+v\n", rcpt)
+	fmt.Println("number of claims", len(intAr))
 	newTotalSupply, err := rtc.TotalSupply(nil)
 	if err != nil {
 		log.Fatal("failed to get total supply ", err)
