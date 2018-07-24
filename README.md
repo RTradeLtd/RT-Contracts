@@ -5,11 +5,16 @@ In this repository you'll find all of the smart contracts that we use at RTrade 
 ## RTCoin
 
 ---
-RTCoin (RTC) is an "mmPOS" (merged-mining Proof Of Stake) ERC20 compliant utility token that gives the user access to RTrade's services. Initially starting out with 61.6Million tokens, the supply can only ever be increased, and not burned. There are two ways to generate RTC, either by staking or through merged mining with the Ethereum blockchain.
+RTCoin (RTC) is an "mmPOS" (merged-mining Proof Of Stake) ERC20 compliant utility token that gives the user access to RTrade's services. The supply can only ever be increased, and not burned. There are two ways to generate RTC, either by staking or through merged mining with the Ethereum blockchain.
 
 By default, token transfers are frozen for RTC, so they need to manually be enabled after deployment.
 
-### Supply Distribution [more info](https://www.rtradetechnologies.com/en/coin/)
+### Supply Distribution And Coin Information[more info](https://www.rtradetechnologies.com/en/coin/)
+
+Initial/Total Supply: 61.6Million
+Max Supply: uncapped
+POS Coin Generation: 10%
+Merged Mining Coin Generation: Theoretical max of 3.15% (see later section for explanation of why it is a theoretical max)
 
 | Allocation Categories | Allocation Percentage |
 |-----------------------|-----------------------|
