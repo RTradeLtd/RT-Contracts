@@ -44,10 +44,13 @@ contract Channels is Administration {
     }
 
     mapping (address => ChannelStruct) public channels;
+    mapping (address => uint256) public ethBalances;
+    mapping (address => uint256) public rtcBalances;
 
     event ChannelOpened(address _opener, address _recipient, uint256 _amount);
 
-    modifier inactiveChannel() {
+    modifier isInactiveChannel() {
+        require(channels[msg.sender].state == ChannelState.opened);
         require(checkForInactiveChannel(msg.sender));
         _;
     }
@@ -74,7 +77,7 @@ contract Channels is Administration {
     }
 
     function () payable external {
-        
+
     }
 
     function openChannel(
@@ -105,6 +108,40 @@ contract Channels is Administration {
             require(RTI.transferFrom(msg.sender, address(this), _channelBalance));
         }
         return true;
+    }
+
+    function updateChannelBalance(uint256 _amount) public payable onlyChannelOwner returns (bool) {
+        if (channels[msg.sender].method == PaymentMethod.ETH) {
+            require(msg.value == _amount);
+            channels[msg.sender].lastBlockActivity = block.number;
+            channels[msg.sender].lastTimeActivity = now;
+            channels[msg.sender].balance = channels[msg.sender].balance.add(_amount);
+            ethBalances[msg.sender] = ethBalances[msg.sender].add(_amount);
+            return true;
+        } else {
+            channels[msg.sender].lastBlockActivity = block.number;
+            channels[msg.sender].lastTimeActivity = now;
+            channels[msg.sender].balance = channels[msg.sender].balance.add(_amount);
+            require(RTI.transferFrom(msg.sender, address(this), _amount));
+            return true;
+        }
+        return false;
+    }
+
+    function closeChannel() public onlyChannelOwner isInactiveChannel returns (bool) {
+        uint256 balance = channels[msg.sender].balance;
+        channels[msg.sender].balance = 0;
+        channels[msg.sender].state = ChannelState.closed;
+        require(ethBalances[msg.sender] == balance);
+        ethBalances[msg.sender] = 0;
+        if (channels[msg.sender].method == PaymentMethod.ETH) {
+            msg.sender.transfer(balance);
+            return true;
+        } else {
+            require(RTI.transfer(msg.sender, balance));
+            return true;
+        }
+        return false;
     }
 
     function generatePreimage(
