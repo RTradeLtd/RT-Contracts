@@ -49,7 +49,7 @@ contract MultiSigWallet {
     event Deposit(address indexed sender, uint256 value);
     event OwnerAddition(address indexed owner);
     event OwnerRemoval(address indexed owner);
-    event RequirementChange(uint256 required);
+    event RequirementChange(uint8 required);
 
     /*
      *  Constants
@@ -209,7 +209,7 @@ contract MultiSigWallet {
     {
         require(_required < 255);
         required = uint8(_required);
-        emit RequirementChange(_required);
+        emit RequirementChange(uint8(_required));
     }
 
     /// @dev Allows an owner to submit and confirm a transaction.
