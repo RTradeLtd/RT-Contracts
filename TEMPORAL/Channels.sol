@@ -50,34 +50,40 @@ contract Channels is Administration {
     event ChannelOpened(address _opener, address _recipient, uint256 _amount);
 
     modifier isInactiveChannel() {
-        require(channels[msg.sender].state == ChannelState.opened);
-        require(checkForInactiveChannel(msg.sender));
+        require(channels[msg.sender].state == ChannelState.opened, "channel must be opened");
+        require(checkForInactiveChannel(msg.sender), "can't execute before the block count and time count have passed");
         _;
     }
 
     modifier validPaymentMethod(uint8 _method) {
-        require(PaymentMethod(_method) == PaymentMethod.RTC || PaymentMethod(_method) == PaymentMethod.ETH);
+        require(PaymentMethod(_method) == PaymentMethod.RTC || PaymentMethod(_method) == PaymentMethod.ETH, "payment method must be ETH or RTC");
         _;
     }
 
     // make sure the sender has neither an opened, nor closed channel
     modifier noActiveChannel() {
-        require(channels[msg.sender].state == ChannelState.nil);
+        require(channels[msg.sender].state == ChannelState.nil, "sender can't have an active channel");
         _;
     }
 
     modifier onlyRecipient() {
-        require(msg.sender == RECIPIENT);
+        require(msg.sender == RECIPIENT, "sender must be the recipient");
         _;
     }
 
     modifier onlyChannelOwner() {
-        require(msg.sender == channels[msg.sender].owner);
+        require(msg.sender == channels[msg.sender].owner, "sender must be channel owner");
         _;
     }
 
     function () payable external {
 
+    }
+
+    constructor() public {
+        require(TOKENADDRESS != address(0), "token address can't be unset");
+        require(HOTWALLET != address(0), "hot wallet can't be unset");
+        require(RECIPIENT != address(0), "recipient can't be unset");
     }
 
     function openChannel(
@@ -91,7 +97,7 @@ contract Channels is Administration {
         returns (bool)
     {
         if (PaymentMethod(_paymentMethod) == PaymentMethod.ETH) {
-            require(msg.value == _channelBalance);
+            require(msg.value == _channelBalance, "msg.value must be equal to _channelBalance");
         }
         ChannelStruct memory cs = ChannelStruct({
             owner: msg.sender,
@@ -105,14 +111,14 @@ contract Channels is Administration {
         });
         channels[msg.sender] = cs;
         if (PaymentMethod(_paymentMethod) == PaymentMethod.RTC) {
-            require(RTI.transferFrom(msg.sender, address(this), _channelBalance));
+            require(RTI.transferFrom(msg.sender, address(this), _channelBalance), "failed to execute transferFrom, likely needs approval");
         }
         return true;
     }
 
     function updateChannelBalance(uint256 _amount) public payable onlyChannelOwner returns (bool) {
         if (channels[msg.sender].method == PaymentMethod.ETH) {
-            require(msg.value == _amount);
+            require(msg.value == _amount, "msg.value must be equal to _amount");
             channels[msg.sender].lastBlockActivity = block.number;
             channels[msg.sender].lastTimeActivity = now;
             channels[msg.sender].balance = channels[msg.sender].balance.add(_amount);
@@ -122,7 +128,7 @@ contract Channels is Administration {
             channels[msg.sender].lastBlockActivity = block.number;
             channels[msg.sender].lastTimeActivity = now;
             channels[msg.sender].balance = channels[msg.sender].balance.add(_amount);
-            require(RTI.transferFrom(msg.sender, address(this), _amount));
+            require(RTI.transferFrom(msg.sender, address(this), _amount), "failed to execute transferFrom, likely needs approval");
             return true;
         }
         return false;
@@ -132,13 +138,13 @@ contract Channels is Administration {
         uint256 balance = channels[msg.sender].balance;
         channels[msg.sender].balance = 0;
         channels[msg.sender].state = ChannelState.closed;
-        require(ethBalances[msg.sender] == balance);
+        require(ethBalances[msg.sender] == balance, "eth balances must be equal to channel balance");
         ethBalances[msg.sender] = 0;
         if (channels[msg.sender].method == PaymentMethod.ETH) {
             msg.sender.transfer(balance);
             return true;
         } else {
-            require(RTI.transfer(msg.sender, balance));
+            require(RTI.transfer(msg.sender, balance), "transfer failed");
             return true;
         }
         return false;
