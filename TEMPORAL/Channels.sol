@@ -36,7 +36,7 @@ contract Channels is Administration {
         address owner;          // this is the owner/opener of the channel
         address recipient;      // this is the recipient of the channel, the person allowed to withdraw funds
         uint256 balance;        // this is the current balance of the channel
-        uint256 numberOfPayments; // this is usedto track the total number of payments made in this channel
+        uint256 paymentNumber; // this is usedto track the total number of payments made in this channel
         uint256 lastBlockActivity; // this records the last block at which an action was performed on this channel
         uint256 lastTimeActivity; // this records the last time at whichan action was performed
         ChannelState state;     // this is the current state of the channel
@@ -49,20 +49,35 @@ contract Channels is Administration {
 
     event ChannelOpened(address _opener, address _recipient, uint256 _amount);
 
+    modifier validPaymentMethod(uint8 _method) {
+        require(PaymentMethod(_method) == PaymentMethod.RTC || PaymentMethod(_method) == PaymentMethod.ETH, "payment method must be ETH or RTC");
+        _;
+    }
+
+    modifier validPaymentNumber(address _channelOwner, uint256 _number) {
+        require(_number > channels[_channelOwner].paymentNumber);
+        _;
+    }
+
+    modifier isActiveChannel(address _channelOwner) {
+        require(channels[_channelOwner].state == ChannelState.opened);
+        _;
+    }
+
     modifier isInactiveChannel() {
         require(channels[msg.sender].state == ChannelState.opened, "channel must be opened");
         require(checkForInactiveChannel(msg.sender), "can't execute before the block count and time count have passed");
         _;
     }
 
-    modifier validPaymentMethod(uint8 _method) {
-        require(PaymentMethod(_method) == PaymentMethod.RTC || PaymentMethod(_method) == PaymentMethod.ETH, "payment method must be ETH or RTC");
-        _;
-    }
-
     // make sure the sender has neither an opened, nor closed channel
     modifier noActiveChannel() {
         require(channels[msg.sender].state == ChannelState.nil, "sender can't have an active channel");
+        _;
+    }
+
+    modifier hasValidBalance(address _channelOwner, uint256 _chargeAmountInWei) {
+        require(_chargeAmountInWei <= channels[_channelOwner].balance);
         _;
     }
 
@@ -103,7 +118,7 @@ contract Channels is Administration {
             owner: msg.sender,
             recipient: _recipient,
             balance: _channelBalance,
-            numberOfPayments: 0,
+            paymentNumber: 0,
             lastBlockActivity: block.number,
             lastTimeActivity: now,
             state: ChannelState.opened,
@@ -113,6 +128,23 @@ contract Channels is Administration {
         if (PaymentMethod(_paymentMethod) == PaymentMethod.RTC) {
             require(RTI.transferFrom(msg.sender, address(this), _channelBalance), "failed to execute transferFrom, likely needs approval");
         }
+        return true;
+    }
+
+    function redeemPayment(
+        address _channelOwner,
+        uint256 _paymentNumber,
+        uint256 _chargeAmountInWei,
+        uint8   _paymentMethod)
+        public 
+        payable 
+        onlyRecipient 
+        validPaymentNumber(_channelOwner, _paymentNumber)
+        validPaymentMethod(_paymentMethod)
+        isActiveChannel(_channelOwner)
+        hasValidBalance(_channelOwner, _chargeAmountInWei)
+        returns (bool) 
+    {
         return true;
     }
 
