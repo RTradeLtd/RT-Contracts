@@ -28,9 +28,10 @@ contract RTCoin is Administration {
     uint8   public  decimals = 18;
     // allows transfers to be frozen, but enable them by default
     bool    public  transfersFrozen = true;
-
+    bool    public  stakeFailOverRestrictionLifted = false;
     mapping (address => uint256) public balances;
     mapping (address => mapping (address => uint256)) public allowed;
+    mapping (address => bool) public minters;
 
     event Transfer(address indexed _sender, address indexed _recipient, uint256 _amount);
     event Approval(address indexed _owner, address indexed _spender, uint256 _amount);
@@ -40,6 +41,7 @@ contract RTCoin is Administration {
     event EthTransferOut(address indexed _recipient, uint256 _amount);
     event MergedMinerValidatorSet(address _contractAddress);
     event StakeContractSet(address _contractAddress);
+    event FailOverStakeContractSet(address _contractAddress);
     event CoinsMinted(address indexed _stakeContract, address indexed _recipient, uint256 _mintAmount);
 
     modifier transfersNotFrozen() {
@@ -54,10 +56,7 @@ contract RTCoin is Administration {
 
     // makes sure that only the stake contract, or merged miner validator contract can mint coins
     modifier onlyMinters() {
-        require(
-            msg.sender == stakeContractAddress || msg.sender == mergedMinerValidatorAddress,
-            "sender is neither stake nor validator contract"
-        );
+        require(minters[msg.sender] == true, "sender must be a valid minter");
         _;
     }
 
@@ -137,6 +136,7 @@ contract RTCoin is Administration {
      */
     function setMergedMinerValidator(address _mergedMinerValidator) external onlyAdmin returns (bool) {
         mergedMinerValidatorAddress = _mergedMinerValidator;
+        minters[_mergedMinerValidator] = true;
         emit MergedMinerValidatorSet(_mergedMinerValidator);
         return true;
     }
@@ -150,11 +150,28 @@ contract RTCoin is Administration {
             require(stake.activeStakes() == 0, "staking contract already configured, to change it must have 0 active stakes");
         }
         stakeContractAddress = _contractAddress;
+        minters[_contractAddress] = true;
         stake = StakeInterface(_contractAddress);
         emit StakeContractSet(_contractAddress);
         return true;
     }
 
+    /** @notice Emergency use function designed to prevent stake deadlocks, allowing a fail-over stake contract to be implemented
+        * Requires 2 transaction, the first lifts the restriction, the second enables the restriction and sets the contract
+        * @dev We restrict to the owner address for security reasons, and don't update the stakeContractAddress variable to avoid breaking compatability
+        * @param _contractAddress This is the address of the stake contract
+     */
+    function setFailOverStakeContract(address _contractAddress) external onlyOwner returns (bool) {
+        if (stakeFailOverRestrictionLifted == false) {
+            stakeFailOverRestrictionLifted = true;
+            return true;
+        } else {
+            minters[_contractAddress] = true;
+            stakeFailOverRestrictionLifted = false;
+            emit FailOverStakeContractSet(_contractAddress);
+            return true;
+        }
+    }
 
     /** @notice This is used to mint new tokens
         * @dev Can only be executed by the staking, and merged miner validator contracts
