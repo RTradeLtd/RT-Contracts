@@ -41,15 +41,15 @@ contract MultiSigWallet {
     /*
      *  Events
      */
-    event Confirmation(address indexed sender, uint indexed transactionId);
-    event Revocation(address indexed sender, uint indexed transactionId);
-    event Submission(uint indexed transactionId);
-    event Execution(uint indexed transactionId);
-    event ExecutionFailure(uint indexed transactionId);
-    event Deposit(address indexed sender, uint value);
+    event Confirmation(address indexed sender, uint256 indexed transactionId);
+    event Revocation(address indexed sender, uint256 indexed transactionId);
+    event Submission(uint256 indexed transactionId);
+    event Execution(uint256 indexed transactionId);
+    event ExecutionFailure(uint256 indexed transactionId);
+    event Deposit(address indexed sender, uint256 value);
     event OwnerAddition(address indexed owner);
     event OwnerRemoval(address indexed owner);
-    event RequirementChange(uint required);
+    event RequirementChange(uint256 required);
 
     /*
      *  Constants
@@ -68,7 +68,7 @@ contract MultiSigWallet {
 
     struct Transaction {
         address destination;
-        uint value;
+        uint256 value;
         bytes data;
         bool executed;
     }
@@ -91,22 +91,22 @@ contract MultiSigWallet {
         _;
     }
 
-    modifier transactionExists(uint transactionId) {
+    modifier transactionExists(uint256 transactionId) {
         require(transactions[transactionId].destination != 0);
         _;
     }
 
-    modifier confirmed(uint transactionId, address owner) {
+    modifier confirmed(uint256 transactionId, address owner) {
         require(confirmations[transactionId][owner]);
         _;
     }
 
-    modifier notConfirmed(uint transactionId, address owner) {
+    modifier notConfirmed(uint256 transactionId, address owner) {
         require(!confirmations[transactionId][owner]);
         _;
     }
 
-    modifier notExecuted(uint transactionId) {
+    modifier notExecuted(uint256 transactionId) {
         require(!transactions[transactionId].executed);
         _;
     }
