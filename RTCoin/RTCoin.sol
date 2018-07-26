@@ -29,6 +29,7 @@ contract RTCoin is Administration {
     // allows transfers to be frozen, but enable them by default
     bool    public  transfersFrozen = true;
     bool    public  stakeFailOverRestrictionLifted = false;
+
     mapping (address => uint256) public balances;
     mapping (address => mapping (address => uint256)) public allowed;
     mapping (address => bool) public minters;
@@ -134,7 +135,7 @@ contract RTCoin is Administration {
     /** @notice This is used to set the merged miner validator contract
         * @param _mergedMinerValidator this is the address of the mergedmining contract
      */
-    function setMergedMinerValidator(address _mergedMinerValidator) external onlyAdmin returns (bool) {
+    function setMergedMinerValidator(address _mergedMinerValidator) external onlyOwner returns (bool) {
         mergedMinerValidatorAddress = _mergedMinerValidator;
         minters[_mergedMinerValidator] = true;
         emit MergedMinerValidatorSet(_mergedMinerValidator);
@@ -144,7 +145,7 @@ contract RTCoin is Administration {
     /** @notice This is used to set the staking contract
         * @param _contractAddress this is the address of the staking contract
     */
-    function setStakeContract(address _contractAddress) external onlyAdmin returns (bool) {
+    function setStakeContract(address _contractAddress) external onlyOwner returns (bool) {
         // this prevents us from changing contracts while there are active stakes going on
         if (stakeContractAddress != address(0)) {
             require(stake.activeStakes() == 0, "staking contract already configured, to change it must have 0 active stakes");
