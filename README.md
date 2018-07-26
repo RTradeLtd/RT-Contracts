@@ -139,6 +139,11 @@ TEMPORAL is RTrade's first major product, allowing users and enterprise business
 * [Code Repository](https://github.com/RTradeLtd/Temporal)
 * [General Information](https://www.rtradetechnologies.com/en/temporal/)
 
+## MultiSig
+
+---
+Within `MultiSig/MultiSigWalletModded.sol` you can find a modified version of Gnosis' MultiSig wallet. It includes a few modifications, such as compiler version 0.4.24, as well as implementing the recommendations pointed out in the OpenZeppelin audit. Additionally, formatting was applied so that the code adheres to standard solidity format and passes linter checks. 
+
 ### Thanks
 
 ---
