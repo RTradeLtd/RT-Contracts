@@ -33,6 +33,7 @@ library SafeMath {
 /// @author Stefan George - <stefan.george@consensys.net>, Modifications by Postables <postables@rtradetechnologies.com>
 /// @dev This contract contains a few optimizations and uses latest compiler modifications
 /// Modifications consist mainly of readability improvements, using `emit` for events, changing constant to view, etc..
+// Modifications borrowed from https://blog.zeppelin.solutions/gnosis-multisig-wallet-audit-d702ff0e2b1e
 contract MultiSigWallet {
 
     using SafeMath for uint256;
@@ -186,6 +187,7 @@ contract MultiSigWallet {
         onlyWallet
         ownerExists(owner)
         ownerDoesNotExist(newOwner)
+        notNull(newOwner)
     {
         for (uint8 i = 0; i<owners.length; i++) {
             if (owners[i] == owner) {
