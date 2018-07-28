@@ -13,7 +13,12 @@ contract Administration {
 
     event AdminSet(address _admin);
     event OwnershipTransferred(address _previousOwner, address _newOwner);
-    event OwnerTransferDelayStarted(OwnerTimeDelayStruct _delay);
+    event OwnerTransferDelayStarted(
+        address _previousOwner,
+        address _newOwner,
+        uint256 _activationBlock,
+        uint256 _activationTime
+    );
 
     enum DelayEnum { nil, pending, changed }
 
@@ -74,12 +79,12 @@ contract Administration {
         OwnerTimeDelayStruct memory os = OwnerTimeDelayStruct({
             previousOwner: msg.sender,
             newOwner: _newOwner,
-            delayExpirationBlock: block.number.add(5760),
-            delayExpirationTime: now.add(uint256(86400).mul(1 seconds)),
+            delayExpirationBlock: block.number.add(10),
+            delayExpirationTime: now.add(uint256(100).mul(1 seconds)),
             state: DelayEnum.pending
         });
         delay = os;
-        emit OwnerTransferDelayStarted(os);
+        emit OwnerTransferDelayStarted(os.previousOwner, os.newOwner, os.delayExpirationBlock, os.delayExpirationTime);
         return true;
     }
 
