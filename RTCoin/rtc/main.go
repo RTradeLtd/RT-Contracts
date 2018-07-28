@@ -40,7 +40,7 @@ func main() {
 	}
 	fmt.Println("RTC contract address is ", rtcAddr.String())
 
-	tx, err = rtc.StartOwnerTransferDelay(auth, common.HexToAddress(stakeAddress))
+	tx, err = rtc.StartOwnerTransferDelay(auth, common.HexToAddress("0x9f11af43a0c4c959fa3f2489812cfd81e8cb1a9a"))
 	if err != nil {
 		log.Fatal("error starting owner transfer delay ", err)
 	}
@@ -63,7 +63,8 @@ func main() {
 	}
 	time.Sleep(time.Second * 100)
 	fmt.Println("activating transfer")
-	tx, err = rtc.TransferOwnership(auth, common.HexToAddress(stakeAddress))
+	auth.GasLimit = 750000
+	tx, err = rtc.TransferOwnership(auth, common.HexToAddress("0x9f11af43a0c4c959fa3f2489812cfd81e8cb1a9a"))
 	if err != nil {
 		log.Fatal("error transferring owner ", err)
 	}
@@ -72,6 +73,7 @@ func main() {
 	if err != nil {
 		log.Fatal("error waiting for tx to be mined ", err)
 	}
+	fmt.Printf("%+v\n", rcpt)
 	if len(rcpt.Logs) == 0 {
 		log.Fatal("failed to transfer ownership, no log events detected")
 	}

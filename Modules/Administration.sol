@@ -79,8 +79,8 @@ contract Administration {
         OwnerTimeDelayStruct memory os = OwnerTimeDelayStruct({
             previousOwner: msg.sender,
             newOwner: _newOwner,
-            delayExpirationBlock: block.number.add(10),
-            delayExpirationTime: now.add(uint256(100).mul(1 seconds)),
+            delayExpirationBlock: block.number.add(5760),
+            delayExpirationTime: now.add(uint256(86400).mul(1 seconds)),
             state: DelayEnum.pending
         });
         delay = os;
