@@ -13,10 +13,10 @@ As of this commit, all tests use the previous RTC contract which didn't have the
 
 ### Supply Distribution And Coin Information [more info](https://www.rtradetechnologies.com/en/coin/)
 
-Initial/Total Supply: 61.6Million
-Max Supply: uncapped
-POS Coin Generation: 10%
-Merged Mining Coin Generation: Theoretical max of 3.15% (see later section for explanation of why it is a theoretical max)
+* Initial/Total Supply: 61.6Million
+* Max Supply: uncapped
+* POS Coin Generation: 10%
+* Merged Mining Coin Generation: Theoretical max of 3.15% (see later section for explanation of why it is a theoretical max)
 
 | Allocation Categories | Allocation Percentage |
 |-----------------------|-----------------------|

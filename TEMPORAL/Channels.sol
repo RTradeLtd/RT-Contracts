@@ -156,7 +156,7 @@ contract Channels is Administration {
             channels[msg.sender].balance = channels[msg.sender].balance.add(_amount);
             ethBalances[msg.sender] = ethBalances[msg.sender].add(_amount);
             return true;
-        } else {
+        } else if (channels[msg.sender].method == PaymentMethod.RTC) {
             channels[msg.sender].lastBlockActivity = block.number;
             channels[msg.sender].lastTimeActivity = now;
             channels[msg.sender].balance = channels[msg.sender].balance.add(_amount);
