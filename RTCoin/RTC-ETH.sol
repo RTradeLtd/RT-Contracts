@@ -15,6 +15,7 @@ contract RTCETH is Administration {
     // we mark as constant private to save gas
     address constant private TOKENADDRESS = address(0);
     RTCoinInterface constant public RTI = RTCoinInterface(TOKENADDRESS);
+    string constant public VERSION = "production";
 
     address public hotWallet;
     uint256 public ethUSD;

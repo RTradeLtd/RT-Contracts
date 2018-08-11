@@ -14,6 +14,7 @@ contract Vesting {
     // these will need to be changed prior to deployment
     address constant public TOKENADDRESS = 0xB8fe3B2C83014566733B766a27d94CB9AC167Dc6;
     RTCoinInterface constant public RTI = RTCoinInterface(TOKENADDRESS);
+    string constant public VERSION = "production";
 
     address public admin;
 

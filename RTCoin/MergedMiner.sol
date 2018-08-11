@@ -16,6 +16,7 @@ contract MergedMinerValidator {
     uint256 constant public SUBMISSIONREWARD = 500000000000000000;
     // 0.3
     uint256 constant public BLOCKREWARD = 300000000000000000;
+    string  constant public VERSION = "production";
 
     address public tokenAddress;
     address public admin;

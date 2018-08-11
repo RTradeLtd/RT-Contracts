@@ -15,6 +15,7 @@ contract RTCoin is Administration {
 
     // this is the initial supply of tokens, 61.6 Million
     uint256 constant public INITIALSUPPLY = 61600000000000000000000000;
+    string  constant public VERSION = "production";
 
     // this is the interface that allows interaction with the staking contract
     StakeInterface public stake = StakeInterface(0);

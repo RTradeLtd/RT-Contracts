@@ -13,7 +13,6 @@ contract Stake {
     using SafeMath for uint256;
 
     // we mark as constant private to reduce gas costs
-    
     // Minimum stake of 1RTC
     uint256 constant private MINSTAKE = 1000000000000000000;
     // NOTE ON MULTIPLIER: this is right now set to 10% this may however change before token is released
@@ -24,6 +23,9 @@ contract Stake {
     // Yes, we use block timestamps which can be influenced to some degree by miners, however since this only determines the time at which an initial stake can be withdrawn at
     // due to the fact that this is also limited by block height, it is an acceptable risk
     uint256 constant private BLOCKSEC = 15;
+    string  constant public VERSION = "production";
+
+
     // this is the address of the RTC token contract
     address  public TOKENADDRESS = 0xE9AEc23c620681a59e2111785b0D35a90498128f;
     // this is the interface used to interact with the RTC Token
