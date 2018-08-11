@@ -47,12 +47,12 @@ contract RTCoin is Administration {
     event CoinsMinted(address indexed _stakeContract, address indexed _recipient, uint256 _mintAmount);
 
     modifier transfersNotFrozen() {
-        require(!transfersFrozen);
+        require(!transfersFrozen, "transfers must not be frozen");
         _;
     }
 
     modifier transfersAreFrozen() {
-        require(transfersFrozen);
+        require(transfersFrozen, "transfers must be frozen");
         _;
     }
 

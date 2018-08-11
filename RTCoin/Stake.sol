@@ -174,7 +174,7 @@ contract Stake {
         // emit an event
         emit StakeRewardWithdrawn(msg.sender, _stakeNumber, mintAmount);
         // mint the tokenz
-        require(RTI.mint(msg.sender, mintAmount));
+        require(RTI.mint(msg.sender, mintAmount), "token minting failed");
         return true;
     }
 

@@ -46,7 +46,7 @@ contract Payments {
     }
 
     modifier onlyAdmin() {
-        require(msg.sender == admin);
+        require(msg.sender == admin, "sender must be admin");
         _;
     }
 

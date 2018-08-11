@@ -37,28 +37,28 @@ contract MergedMinerValidator {
     event MergedMinedRewardClaimed(address indexed _claimer, uint256[] indexed _blockNumbers, uint256 _totalReward);
 
     modifier submittedBlock(uint256 _blockNum) {
-        require(blocks[_blockNum].state == BlockStateEnum.submitted);
+        require(blocks[_blockNum].state == BlockStateEnum.submitted, "block state must be submitted");
         _;
 
     }
 
     modifier nonSubmittedBlock(uint256 _blockNum) {
-        require(blocks[_blockNum].state == BlockStateEnum.nil);
+        require(blocks[_blockNum].state == BlockStateEnum.nil, "block state must be empty");
         _;
     }
 
     modifier isCoinbase(uint256 _blockNumber) {
-        require(msg.sender == blocks[_blockNumber].coinbase);
+        require(msg.sender == blocks[_blockNumber].coinbase, "sender must be coinbase");
         _;
     }
 
     modifier unclaimed(uint256 _blockNumber) {
-        require(blocks[_blockNumber].state == BlockStateEnum.submitted);
+        require(blocks[_blockNumber].state == BlockStateEnum.submitted, "block must be submitted");
         _;
     }
 
     modifier canMint() {
-        require(rtI.mergedMinerValidatorAddress() == address(this));
+        require(rtI.mergedMinerValidatorAddress() == address(this), "merged miner contract on rtc token must be set to this contract");
         _;
     }
 
@@ -68,7 +68,7 @@ contract MergedMinerValidator {
     }
 
     modifier onlyAdmin() {
-        require(msg.sender == admin);
+        require(msg.sender == admin, "only an admin can invoke this function");
         _;
     }
 

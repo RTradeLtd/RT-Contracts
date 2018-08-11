@@ -27,12 +27,12 @@ contract RTCETH is Administration {
     event RtcPurchased(uint256 _rtcPurchased);
 
     modifier notLocked() {
-        require(!locked);
+        require(!locked, "sale must not be locked");
         _;
     }
 
     modifier isLocked() {
-        require(locked);
+        require(locked, "sale must be locked");
         _;
     }
 
@@ -60,12 +60,12 @@ contract RTCETH is Administration {
 
     constructor() public {
         // prevent deployment if the token address isnt set
-        require(TOKENADDRESS != address(0));
+        require(TOKENADDRESS != address(0), "token address cant be unset");
         locked = true;
     }
 
     function () external payable {
-        require(buyRtc());
+        require(buyRtc(), "buying rtc failed");
     }
 
     function updateEthPrice(
@@ -102,7 +102,7 @@ contract RTCETH is Administration {
         isLocked
         returns (bool)
     {
-        require(RTI.transfer(msg.sender, RTI.balanceOf(address(this))));
+        require(RTI.transfer(msg.sender, RTI.balanceOf(address(this))), "transfer failed");
         return true;
     }
 
@@ -112,13 +112,13 @@ contract RTCETH is Administration {
         notLocked
         returns (bool)
     {
-        require(hotWallet != address(0));
-        require(msg.value > 0);
+        require(hotWallet != address(0), "hot wallet cant be unset");
+        require(msg.value > 0, "msg value must be greater than zero");
         uint256 rtcPurchased = (msg.value.div(weiPerRtc)).mul(1 ether);
         emit RtcPurchased(rtcPurchased);
         hotWallet.transfer(msg.value);
         emit RtcPurchased(rtcPurchased);
-        require(RTI.transfer(msg.sender, rtcPurchased));
+        require(RTI.transfer(msg.sender, rtcPurchased), "transfer failed");
         return true;
     }
 }
