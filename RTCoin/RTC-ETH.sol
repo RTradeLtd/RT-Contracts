@@ -25,6 +25,7 @@ contract RTCETH is Administration {
     event EthUsdPriceUpdated(uint256 _ethUSD);
     event EthPerRtcUpdated(uint256 _ethPerRtc);
     event RtcPurchased(uint256 _rtcPurchased);
+    event ForeignTokenTransfer(address indexed _sender, address indexed _recipient, uint256 _amount);
 
     modifier notLocked() {
         require(!locked, "sale must not be locked");
@@ -43,7 +44,6 @@ contract RTCETH is Administration {
         returns (bool)
     {
         locked = true;
-        // place holder
         return true;
     }
 
@@ -54,7 +54,6 @@ contract RTCETH is Administration {
         returns (bool)
     {
         locked = false;
-        // place holder
         return true;
     }
 
@@ -114,11 +113,33 @@ contract RTCETH is Administration {
     {
         require(hotWallet != address(0), "hot wallet cant be unset");
         require(msg.value > 0, "msg value must be greater than zero");
-        uint256 rtcPurchased = (msg.value.div(weiPerRtc)).mul(1 ether);
-        emit RtcPurchased(rtcPurchased);
+        uint256 rtcPurchased = (msg.value.mul(1 ether)).div(weiPerRtc);
         hotWallet.transfer(msg.value);
-        emit RtcPurchased(rtcPurchased);
         require(RTI.transfer(msg.sender, rtcPurchased), "transfer failed");
+        emit RtcPurchased(rtcPurchased);
+        return true;
+    }
+
+    /** @notice Allow us to transfer tokens that someone might've accidentally sent to this contract
+        @param _tokenAddress this is the address of the token contract
+        @param _recipient This is the address of the person receiving the tokens
+        @param _amount This is the amount of tokens to send
+     */
+    function transferForeignToken(
+        address _tokenAddress,
+        address _recipient,
+        uint256 _amount)
+        public
+        onlyAdmin
+        nonZeroAddress(_recipient)
+        returns (bool)
+    {
+        // don't allow us to transfer RTC tokens
+        require(_tokenAddress != address(this), "token address can't be this contract");
+        ERC20Interface eI = ERC20Interface(_tokenAddress);
+        require(eI.balanceOf(address(this)) >= _amount, "attempting to send more tokens than current balance");
+        require(eI.transfer(_recipient, _amount), "token transfer failed");
+        emit ForeignTokenTransfer(msg.sender, _recipient, _amount);
         return true;
     }
 }
