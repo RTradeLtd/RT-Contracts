@@ -164,11 +164,6 @@ contract Stake {
     function mint(uint256 _stakeNumber) public validMint(_stakeNumber) returns (bool) {
         // determine the amount of coins to be minted in this withdrawal
         uint256 mintAmount = calculateMint(_stakeNumber);
-        // make sure that we can't mint more than allowed
-        require(
-            stakes[msg.sender][_stakeNumber].coinsMinted.add(mintAmount) <= stakes[msg.sender][_stakeNumber].totalCoinsToMint, 
-            "total coins minted does not add up"
-        );
         // update current coins minted
         stakes[msg.sender][_stakeNumber].coinsMinted = stakes[msg.sender][_stakeNumber].coinsMinted.add(mintAmount);
         // update the last block a withdrawal was made at

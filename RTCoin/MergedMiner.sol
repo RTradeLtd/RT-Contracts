@@ -52,11 +52,6 @@ contract MergedMinerValidator {
         _;
     }
 
-    modifier unclaimed(uint256 _blockNumber) {
-        require(blocks[_blockNumber].state == BlockStateEnum.submitted, "block must be submitted");
-        _;
-    }
-
     modifier canMint() {
         require(rtI.mergedMinerValidatorAddress() == address(this), "merged miner contract on rtc token must be set to this contract");
         _;
@@ -114,7 +109,6 @@ contract MergedMinerValidator {
     function claimReward(uint256 _blockNumber) 
         internal
         isCoinbase(_blockNumber) 
-        unclaimed(_blockNumber) 
         submittedBlock(_blockNumber)
         returns (uint256) 
     {
@@ -133,8 +127,6 @@ contract MergedMinerValidator {
         for (uint256 i = 0; i < _blockNumbers.length; i++) {
             // update their total amount minted
             totalMint = totalMint.add(claimReward(_blockNumbers[i]));
-            // make sure the block was marked as claimed
-            require(blocks[_blockNumbers[i]].state == BlockStateEnum.claimed, "block state is not claimed");
         }
         emit MergedMinedRewardClaimed(msg.sender, _blockNumbers, totalMint);
         // make sure more than 0 is being claimed

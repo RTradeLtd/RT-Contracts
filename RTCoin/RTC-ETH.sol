@@ -64,6 +64,7 @@ contract RTCETH is Administration {
     }
 
     function () external payable {
+        require(msg.data.length == 0, "data length must be 0");
         require(buyRtc(), "buying rtc failed");
     }
 
