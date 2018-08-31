@@ -45,12 +45,45 @@ func main() {
 			deployStake(keyFile, keyPass, msigWalletAddress)
 		case "rtceth":
 			deployRTCETH(keyFile, keyPass, msigWalletAddress)
+		case "vesting":
+			deployVesting(keyFile, keyPass, msigWalletAddress)
 		default:
 			log.Fatal("invalid contract type")
 		}
 	default:
 		log.Fatal("invalid run mode")
 	}
+}
+
+func deployVesting(keyFile, keyPass, multisig string) error {
+	fileBytes, err := ioutil.ReadFile(keyFile)
+	if err != nil {
+		return err
+	}
+	pk, err := keystore.DecryptKey(fileBytes, keyPass)
+	if err != nil {
+		return err
+	}
+	auth := bind.NewKeyedTransactor(pk.PrivateKey)
+	client, err := ethclient.Dial(endpoint)
+	if err != nil {
+		fmt.Println("error dialing ethclient ", err)
+		return err
+	}
+	fmt.Println("deploying vesting contract")
+	vestingAddr, tx, _, err := bindings.DeployVesting(auth, client, common.HexToAddress(multisig))
+	if err != nil {
+		fmt.Println("error deploying vesting contract ", err)
+		return err
+	}
+
+	_, err = bind.WaitDeployed(context.Background(), client, tx)
+	if err != nil {
+		fmt.Println("failed to wait for contract deployment ", err)
+		return err
+	}
+	fmt.Println("vesting contract address ", vestingAddr.String())
+	return nil
 }
 
 func deployRTCETH(keyFile, keyPass, multisig string) error {

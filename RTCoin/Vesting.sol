@@ -12,7 +12,7 @@ contract Vesting {
     using SafeMath for uint256;
 
     // these will need to be changed prior to deployment
-    address constant public TOKENADDRESS = 0xB8fe3B2C83014566733B766a27d94CB9AC167Dc6;
+    address constant public TOKENADDRESS = 0x675b45856257CeEf650100C7Ca1b2E8c6FF42e7C;
     RTCoinInterface constant public RTI = RTCoinInterface(TOKENADDRESS);
     string constant public VERSION = "production";
 
@@ -71,10 +71,10 @@ contract Vesting {
         _;
     }
 
-    constructor() public {
+    constructor(address _admin) public {
         // prevent deployments if not properly setup
         require(TOKENADDRESS != address(0), "token address not set");
-        admin = msg.sender;
+        admin = _admin;
     }
 
     /** @notice Used to deposit a vest for someone
