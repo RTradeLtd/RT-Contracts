@@ -68,7 +68,7 @@ contract RTCoin is Administration {
     }
 
     modifier nonAdminAddress(address _addr) {
-        require(_addr != owner || _addr != admin, "addr cant be owner or admin");
+        require(_addr != owner && _addr != admin, "addr cant be owner or admin");
         _;
     }
 
@@ -277,8 +277,7 @@ contract RTCoin is Administration {
         public
         returns (bool)
     {
-        allowed[msg.sender][_spender] = (
-        allowed[msg.sender][_spender].add(_addedValue));
+        allowed[msg.sender][_spender] = allowed[msg.sender][_spender].add(_addedValue);
         emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
         return true;
     }
