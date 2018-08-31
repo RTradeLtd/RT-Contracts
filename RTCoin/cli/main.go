@@ -1,0 +1,168 @@
+package main
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+
+	"github.com/RTradeLtd/RT-Contracts/bindings"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/accounts/keystore"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
+)
+
+var endpoint = "http://127.0.0.1:8545"
+
+func main() {
+	if len(os.Args) < 2 {
+		fmt.Println("invalid invocation")
+		fmt.Println("cli <mode> <args>")
+		fmt.Println("mode: deploy")
+		fmt.Println("deploy args: 1 = contract | 2 = keyFile | 3 = keyPass | 4 = multisig wallet")
+		os.Exit(1)
+	}
+	mode := os.Args[1]
+	switch mode {
+	case "deploy":
+		contract := os.Args[2]
+		keyFile := os.Args[3]
+		keyPass := os.Args[4]
+		msigWalletAddress := os.Args[5]
+		switch contract {
+		case "rtc":
+			deployRTC(keyFile, keyPass, msigWalletAddress)
+		default:
+			log.Fatal("invalid contract type")
+		}
+	default:
+		log.Fatal("invalid run mode")
+	}
+}
+
+func deployStake(keyFile, keyPass, multisig string) error {
+	fileBytes, err := ioutil.ReadFile(keyFile)
+	if err != nil {
+		return err
+	}
+	pk, err := keystore.DecryptKey(fileBytes, keyPass)
+	if err != nil {
+		return err
+	}
+	auth := bind.NewKeyedTransactor(pk.PrivateKey)
+	client, err := ethclient.Dial(endpoint)
+	if err != nil {
+		fmt.Println("error dialing ethclient ", err)
+		return err
+	}
+	_, tx, _, err := bindings.DeployStake(auth, common.HexToAddress(multisig))
+	if err != nil {
+		fmt.Println("failed to deploy staking contract ", err)
+		return err
+	}
+}
+
+func deployRTC(keyFile, keyPass, multisigWalletAddress string) error {
+	fileBytes, err := ioutil.ReadFile(keyFile)
+	if err != nil {
+		return err
+	}
+	pk, err := keystore.DecryptKey(fileBytes, keyPass)
+	if err != nil {
+		return err
+	}
+	auth := bind.NewKeyedTransactor(pk.PrivateKey)
+	client, err := ethclient.Dial(endpoint)
+	if err != nil {
+		fmt.Println("error dialing ethclient ", err)
+		return err
+	}
+	fmt.Println("deploying RTC token")
+	rtcAddress, tx, rtc, err := bindings.DeployRTCoin(auth, client)
+	if err != nil {
+		fmt.Println("error deploying RTC token ", err)
+		return err
+	}
+
+	_, err = bind.WaitDeployed(context.Background(), client, tx)
+	if err != nil {
+		fmt.Println("failed to wait for token to be deployed ", err)
+		return err
+	}
+	fmt.Println("thawing transfers")
+	// enable transfers
+	tx, err = rtc.ThawTransfers(auth)
+	if err != nil {
+		fmt.Println("failed to submit tx thaw transaction ", err)
+		return err
+	}
+	rcpt, err := bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		fmt.Println("failed to wait for transaction to be mined ", err)
+		return err
+	}
+	if len(rcpt.Logs) == 0 {
+		fmt.Println("failed to thaw transers no logs emitted")
+		return errors.New("failed to thaw transfers, no logs emitted")
+	}
+	// get the total supply
+	tSupply, err := rtc.TotalSupply(nil)
+	if err != nil {
+		fmt.Println("failed to retrieve total supply ", err)
+		return err
+	}
+	fmt.Println("transferring tokens to multisig")
+	// transfer tokens to multisig
+	tx, err = rtc.Transfer(auth, common.HexToAddress(multisigWalletAddress), tSupply)
+	if err != nil {
+		fmt.Println("failed to submit transfer tx to blockchain ", err)
+		return err
+	}
+	rcpt, err = bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		fmt.Println("failed to wait for transaction to be miend ", err)
+		return err
+	}
+	if len(rcpt.Logs) == 0 {
+		fmt.Println("failed to transfer tokens no logs emitted")
+		return errors.New("failed to transfer tokens no logs emitted")
+	}
+	fmt.Println("transferring admin rights to multisig")
+	// transfer admin rights
+	tx, err = rtc.SetAdmin(auth, common.HexToAddress(multisigWalletAddress))
+	if err != nil {
+		fmt.Println("failed to set admin rights ", err)
+		return err
+	}
+	rcpt, err = bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		fmt.Println("failed to wait for transaction to be miend ", err)
+		return err
+	}
+	if len(rcpt.Logs) == 0 {
+		fmt.Println("failed to transfer admin rights logs emitted")
+		return errors.New("failed to transfer admin rightss no logs emitted")
+	}
+	fmt.Println("transferring ownership to multisig")
+	// transfer ownership
+	tx, err = rtc.TransferOwnership(auth, common.HexToAddress(multisigWalletAddress))
+	if err != nil {
+		fmt.Println("failed to transfer ownership ", err)
+		return err
+	}
+	rcpt, err = bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		fmt.Println("failed to wait for transaction to be miend ", err)
+		return err
+	}
+	if len(rcpt.Logs) == 0 {
+		fmt.Println("failed to transfer ownership logs emitted")
+		return errors.New("failed to transfer ownership no logs emitted")
+	}
+	fmt.Println("RTC token deployed and setup")
+	fmt.Println("Token address: ", rtcAddress.String())
+	return nil
+}

@@ -26,7 +26,7 @@ contract Stake {
     uint256 constant private BLOCKSEC = 15;
     string  constant public VERSION = "production";
     // this is the address of the RTC token contract
-    address  constant public TOKENADDRESS = 0xE9AEc23c620681a59e2111785b0D35a90498128f;
+    address  constant public TOKENADDRESS = 0x2c0d8920852D87D302D8102860E178185899E5d6;
     // this is the interface used to interact with the RTC Token
     RTCoinInterface   constant public RTI = RTCoinInterface(TOKENADDRESS);
 
@@ -121,9 +121,9 @@ contract Stake {
         _;
     }
 
-    constructor() public {
+    constructor(address _admin) public {
         require(TOKENADDRESS != address(0), "token address not set");
-        admin = msg.sender;
+        admin = _admin;
     }
 
     /** @notice Used to disable new stakes from being made
