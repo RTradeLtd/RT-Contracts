@@ -72,8 +72,8 @@ contract MergedMinerValidator {
         _;
     }
 
-    constructor() public {
-        admin = msg.sender;
+    constructor(address _admin) public {
+        admin = _admin;
         Blocks memory b = Blocks({
             number: block.number,
             coinbase: block.coinbase,

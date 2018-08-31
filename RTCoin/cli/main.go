@@ -47,12 +47,44 @@ func main() {
 			deployRTCETH(keyFile, keyPass, msigWalletAddress)
 		case "vesting":
 			deployVesting(keyFile, keyPass, msigWalletAddress)
+		case "mergedminer":
+			deployMergedMiner(keyFile, keyPass, msigWalletAddress)
 		default:
 			log.Fatal("invalid contract type")
 		}
 	default:
 		log.Fatal("invalid run mode")
 	}
+}
+
+func deployMergedMiner(keyFile, keyPass, multisig string) error {
+	fileBytes, err := ioutil.ReadFile(keyFile)
+	if err != nil {
+		return err
+	}
+	pk, err := keystore.DecryptKey(fileBytes, keyPass)
+	if err != nil {
+		return err
+	}
+	auth := bind.NewKeyedTransactor(pk.PrivateKey)
+	client, err := ethclient.Dial(endpoint)
+	if err != nil {
+		fmt.Println("error dialing ethclient ", err)
+		return err
+	}
+	minerAddress, tx, _, err := bindings.DeployMergedMinerValidator(auth, client, common.HexToAddress(multisig))
+	if err != nil {
+		fmt.Println("error deploying merged miner validator ", err)
+		return err
+	}
+	_, err = bind.WaitDeployed(context.Background(), client, tx)
+	if err != nil {
+		fmt.Println("failed to wait for merged miner validator to be deployed ", err)
+		return err
+	}
+
+	fmt.Println("Merged Miner Validator Address ", minerAddress.String())
+	return nil
 }
 
 func deployVesting(keyFile, keyPass, multisig string) error {
