@@ -146,6 +146,8 @@ contract Vesting {
             }
             // if they are attempting to withdraw the last vest, this must be true or else the tx will revert
             require(check, "not all vests have been withdrawn before attempting to withdraw final vest");
+            // as this is the last vest, we must mark everything as having been vested, preventing further invocations
+            vests[msg.sender].state = VestState.vested;
         }
         // mark this particular vest as claimed
         vests[msg.sender].claimed[_vestIndex] = true;

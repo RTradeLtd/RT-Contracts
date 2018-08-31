@@ -88,7 +88,7 @@ contract RTCETH is Administration {
     function setHotWallet(
         address _hotWalletAddress)
         public
-        onlyAdmin
+        onlyOwner
         isLocked
         returns (bool)
     {
@@ -98,7 +98,7 @@ contract RTCETH is Administration {
 
     function withdrawRemainingRtc()
         public
-        onlyAdmin
+        onlyOwner
         isLocked
         returns (bool)
     {
@@ -136,7 +136,7 @@ contract RTCETH is Administration {
         returns (bool)
     {
         // don't allow us to transfer RTC tokens
-        require(_tokenAddress != address(this), "token address can't be this contract");
+        require(_tokenAddress != TOKENADDRESS, "token address can't be this contract");
         ERC20Interface eI = ERC20Interface(_tokenAddress);
         require(eI.balanceOf(address(this)) >= _amount, "attempting to send more tokens than current balance");
         require(eI.transfer(_recipient, _amount), "token transfer failed");
