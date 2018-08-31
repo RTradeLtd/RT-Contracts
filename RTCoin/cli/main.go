@@ -15,9 +15,15 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-var endpoint = "http://127.0.0.1:8545"
+var endpoint = ""
 
 func main() {
+	epoint := os.Getenv("RINKEBY_INFURA")
+	if epoint == "" {
+		endpoint = "http://127.0.0.1:8545"
+	} else {
+		endpoint = epoint
+	}
 	if len(os.Args) < 2 {
 		fmt.Println("invalid invocation")
 		fmt.Println("cli <mode> <args>")
@@ -35,6 +41,8 @@ func main() {
 		switch contract {
 		case "rtc":
 			deployRTC(keyFile, keyPass, msigWalletAddress)
+		case "stake":
+			deployStake(keyFile, keyPass, msigWalletAddress)
 		default:
 			log.Fatal("invalid contract type")
 		}
@@ -58,11 +66,21 @@ func deployStake(keyFile, keyPass, multisig string) error {
 		fmt.Println("error dialing ethclient ", err)
 		return err
 	}
-	_, tx, _, err := bindings.DeployStake(auth, common.HexToAddress(multisig))
+	fmt.Println("deploying staking contract")
+	_, tx, _, err := bindings.DeployStake(auth, client, common.HexToAddress(multisig))
 	if err != nil {
 		fmt.Println("failed to deploy staking contract ", err)
 		return err
 	}
+
+	addr, err := bind.WaitDeployed(context.Background(), client, tx)
+	if err != nil {
+		fmt.Println("error waiting for contract to be deployed ", err)
+		return err
+	}
+	fmt.Println("staking contract deployed")
+	fmt.Println("Staking Contract Address ", addr.String())
+	return nil
 }
 
 func deployRTC(keyFile, keyPass, multisigWalletAddress string) error {

@@ -26,7 +26,7 @@ contract Stake {
     uint256 constant private BLOCKSEC = 15;
     string  constant public VERSION = "production";
     // this is the address of the RTC token contract
-    address  constant public TOKENADDRESS = 0x2c0d8920852D87D302D8102860E178185899E5d6;
+    address  constant public TOKENADDRESS = 0x675b45856257CeEf650100C7Ca1b2E8c6FF42e7C;
     // this is the interface used to interact with the RTC Token
     RTCoinInterface   constant public RTI = RTCoinInterface(TOKENADDRESS);
 
