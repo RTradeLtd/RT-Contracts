@@ -2,6 +2,7 @@
 
 In this repository you'll find all of the smart contracts that we use at RTrade for our various services. Along with them, you'll find a detailed summary of our smart contract infrastructure for RTC in this readme.
 
+For code audit reports check the [Documents Directory](https://github.com/RTradeLtd/RT-Contracts/tree/master/Documents/audits)
 
 ## Deployed Contracts
 
