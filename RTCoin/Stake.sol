@@ -1,6 +1,7 @@
 pragma solidity 0.4.24;
 pragma experimental "v0.5.0";
 
+
 import "../Interfaces/RTCoinInterface.sol";
 import "../Interfaces/ERC20Interface.sol";
 import "../Math/SafeMath.sol";
@@ -67,6 +68,7 @@ contract Stake {
     event StakeDeposited(address indexed _staker, uint256 indexed _stakeNum, uint256 _coinsToMint, uint256 _releaseDate, uint256 _releaseBlock);
     event StakeRewardWithdrawn(address indexed _staker, uint256 indexed _stakeNum, uint256 _reward);
     event InitialStakeWithdrawn(address indexed _staker, uint256 indexed _stakeNumber, uint256 _amount);
+    event ForeignTokenTransfer(address indexed _sender, address indexed _recipient, uint256 _amount);
 
     // keeps track of the stakes a user has
     mapping (address => mapping (uint256 => StakeStruct)) public stakes;
@@ -162,11 +164,6 @@ contract Stake {
     function mint(uint256 _stakeNumber) public validMint(_stakeNumber) returns (bool) {
         // determine the amount of coins to be minted in this withdrawal
         uint256 mintAmount = calculateMint(_stakeNumber);
-        // make sure that we can't mint more than allowed
-        require(
-            stakes[msg.sender][_stakeNumber].coinsMinted.add(mintAmount) <= stakes[msg.sender][_stakeNumber].totalCoinsToMint, 
-            "total coins minted does not add up"
-        );
         // update current coins minted
         stakes[msg.sender][_stakeNumber].coinsMinted = stakes[msg.sender][_stakeNumber].coinsMinted.add(mintAmount);
         // update the last block a withdrawal was made at
@@ -305,12 +302,27 @@ contract Stake {
         }
     }
 
-    /** @notice This is a helper function used to calculate the total number of tokens to be minted
-        * @param _numRTC This is the number of RTC being staked
+    /** @notice Allow us to transfer tokens that someone might've accidentally sent to this contract
+        @param _tokenAddress this is the address of the token contract
+        @param _recipient This is the address of the person receiving the tokens
+        @param _amount This is the amount of tokens to send
      */
-    function calculateTotalCoinsMinted(uint256 _numRTC) internal pure returns (uint256 totalCoinsMinted) {
-        totalCoinsMinted = _numRTC.mul(MULTIPLIER);
-        totalCoinsMinted = totalCoinsMinted.div(1 ether);
+    function transferForeignToken(
+        address _tokenAddress,
+        address _recipient,
+        uint256 _amount)
+        public
+        onlyAdmin
+        returns (bool)
+    {
+        require(_recipient != address(0), "recipient address can't be empty");
+        // don't allow us to transfer RTC tokens
+        require(_tokenAddress != address(this), "token address can't be this contract");
+        ERC20Interface eI = ERC20Interface(_tokenAddress);
+        require(eI.balanceOf(address(this)) >= _amount, "attempting to send more tokens than current balance");
+        require(eI.transfer(_recipient, _amount), "token transfer failed");
+        emit ForeignTokenTransfer(msg.sender, _recipient, _amount);
+        return true;
     }
 
     /** @notice This is a helper function used to calculate how many blocks to mint coins for

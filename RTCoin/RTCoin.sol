@@ -62,6 +62,16 @@ contract RTCoin is Administration {
         _;
     }
 
+    modifier nonZeroAddress(address _addr) {
+        require(_addr != address(0), "must be non zero address");
+        _;
+    }
+
+    modifier nonAdminAddress(address _addr) {
+        require(_addr != owner || _addr != admin, "addr cant be owner or admin");
+        _;
+    }
+
     constructor() public {
         balances[msg.sender] = totalSupply;
         emit Transfer(address(0), msg.sender, totalSupply);
@@ -77,6 +87,7 @@ contract RTCoin is Administration {
     )
         public
         transfersNotFrozen
+        nonZeroAddress(_recipient)
         returns (bool)
     {
         // check that the sender has a valid balance
@@ -98,6 +109,7 @@ contract RTCoin is Administration {
     )
         public
         transfersNotFrozen
+        nonZeroAddress(_recipient)
         returns (bool)
     {
         // ensure owner has a valid balance
@@ -118,16 +130,9 @@ contract RTCoin is Administration {
         * @param _spender This is the person who can spend on your behalf
         * @param _amount This is the amount of tokens that they can spend
      */
-    function approve(
-        address _spender,
-        uint256 _amount
-    )
-        public
-        returns (bool)
-    {
-        require(_amount > 0, "amount must be greater than 0");
-        allowed[msg.sender][_spender] = allowed[msg.sender][_spender].add(_amount);
-        emit Approval(msg.sender, _spender, _amount);
+    function approve(address _spender, uint256 _value) public returns (bool) {
+        allowed[msg.sender][_spender] = _value;
+        emit Approval(msg.sender, _spender, _value);
         return true;
     }
 
@@ -136,7 +141,7 @@ contract RTCoin is Administration {
     /** @notice This is used to set the merged miner validator contract
         * @param _mergedMinerValidator this is the address of the mergedmining contract
      */
-    function setMergedMinerValidator(address _mergedMinerValidator) external onlyOwner returns (bool) {
+    function setMergedMinerValidator(address _mergedMinerValidator) external onlyOwner nonAdminAddress(_mergedMinerValidator) returns (bool) {
         mergedMinerValidatorAddress = _mergedMinerValidator;
         minters[_mergedMinerValidator] = true;
         emit MergedMinerValidatorSet(_mergedMinerValidator);
@@ -146,7 +151,7 @@ contract RTCoin is Administration {
     /** @notice This is used to set the staking contract
         * @param _contractAddress this is the address of the staking contract
     */
-    function setStakeContract(address _contractAddress) external onlyOwner returns (bool) {
+    function setStakeContract(address _contractAddress) external onlyOwner nonAdminAddress(_contractAddress) returns (bool) {
         // this prevents us from changing contracts while there are active stakes going on
         if (stakeContractAddress != address(0)) {
             require(stake.activeStakes() == 0, "staking contract already configured, to change it must have 0 active stakes");
@@ -163,7 +168,7 @@ contract RTCoin is Administration {
         * @dev We restrict to the owner address for security reasons, and don't update the stakeContractAddress variable to avoid breaking compatability
         * @param _contractAddress This is the address of the stake contract
      */
-    function setFailOverStakeContract(address _contractAddress) external onlyOwner returns (bool) {
+    function setFailOverStakeContract(address _contractAddress) external onlyOwner nonAdminAddress(_contractAddress) returns (bool) {
         if (stakeFailOverRestrictionLifted == false) {
             stakeFailOverRestrictionLifted = true;
             return true;
@@ -205,12 +210,12 @@ contract RTCoin is Administration {
         uint256 _amount)
         public
         onlyAdmin
+        nonZeroAddress(_recipient)
         returns (bool)
     {
         // don't allow us to transfer RTC tokens
         require(_tokenAddress != address(this), "token address can't be this contract");
         ERC20Interface eI = ERC20Interface(_tokenAddress);
-        require(eI.balanceOf(address(this)) >= _amount, "attempting to send more tokens than current balance");
         require(eI.transfer(_recipient, _amount), "token transfer failed");
         emit ForeignTokenTransfer(msg.sender, _recipient, _amount);
         return true;
@@ -255,6 +260,54 @@ contract RTCoin is Administration {
         return true;
     }
 
+
+    /**
+    * @dev Increase the amount of tokens that an owner allowed to a spender.
+    * approve should be called when allowed[_spender] == 0. To increment
+    * allowed value is better to use this function to avoid 2 calls (and wait until
+    * the first transaction is mined)
+    * From MonolithDAO Token.sol
+    * @param _spender The address which will spend the funds.
+    * @param _addedValue The amount of tokens to increase the allowance by.
+    */
+    function increaseApproval(
+        address _spender,
+        uint256 _addedValue
+    )
+        public
+        returns (bool)
+    {
+        allowed[msg.sender][_spender] = (
+        allowed[msg.sender][_spender].add(_addedValue));
+        emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
+        return true;
+    }
+
+    /**
+    * @dev Decrease the amount of tokens that an owner allowed to a spender.
+    * approve should be called when allowed[_spender] == 0. To decrement
+    * allowed value is better to use this function to avoid 2 calls (and wait until
+    * the first transaction is mined)
+    * From MonolithDAO Token.sol
+    * @param _spender The address which will spend the funds.
+    * @param _subtractedValue The amount of tokens to decrease the allowance by.
+    */
+    function decreaseApproval(
+        address _spender,
+        uint256 _subtractedValue
+    )
+        public
+        returns (bool)
+    {
+        uint256 oldValue = allowed[msg.sender][_spender];
+        if (_subtractedValue >= oldValue) {
+            allowed[msg.sender][_spender] = 0;
+        } else {
+            allowed[msg.sender][_spender] = oldValue.sub(_subtractedValue);
+        }
+        emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
+        return true;
+    }
 
     /**GETTERS */
 
