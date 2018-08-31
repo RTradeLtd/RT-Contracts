@@ -11,6 +11,7 @@ In this repository you'll find all of the smart contracts that we use at RTrade 
 * [Stake](https://rinkeby.etherscan.io/address/0x0aa0277cecb6ec0872d55b7bdc9f8a9dc160022a#code)
 * [RTCETH](https://rinkeby.etherscan.io/address/0xC2a87A17b28316469152e0c2892D20095369bd97#code)
 * [Vesting](https://rinkeby.etherscan.io/address/0x8B8784c083b90AA0D699014d750748B3B2c1aD64#code)
+* [Merged Miner](https://rinkeby.etherscan.io/address/0x64d577fd98B000871ae99Fb1d9C1C32c3018dC10#code)
 
 ## RTCoin
 
