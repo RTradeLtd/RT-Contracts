@@ -132,13 +132,12 @@ contract RTCETH is Administration {
         uint256 _amount)
         public
         onlyAdmin
-        nonZeroAddress(_recipient)
         returns (bool)
     {
-        // don't allow us to transfer RTC tokens
-        require(_tokenAddress != TOKENADDRESS, "token address can't be this contract");
+        require(_recipient != address(0), "recipient address can't be empty");
+        // don't allow us to transfer RTC tokens stored in this contract
+        require(_tokenAddress != TOKENADDRESS, "token can't be RTC");
         ERC20Interface eI = ERC20Interface(_tokenAddress);
-        require(eI.balanceOf(address(this)) >= _amount, "attempting to send more tokens than current balance");
         require(eI.transfer(_recipient, _amount), "token transfer failed");
         emit ForeignTokenTransfer(msg.sender, _recipient, _amount);
         return true;
