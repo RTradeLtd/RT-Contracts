@@ -128,7 +128,7 @@ contract RTCoin is Administration {
 
     /** @notice This is used to approve someone to send tokens on your behalf
         * @param _spender This is the person who can spend on your behalf
-        * @param _amount This is the amount of tokens that they can spend
+        * @param _value This is the amount of tokens that they can spend
      */
     function approve(address _spender, uint256 _value) public returns (bool) {
         allowed[msg.sender][_spender] = _value;
