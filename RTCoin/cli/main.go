@@ -43,12 +43,77 @@ func main() {
 			deployRTC(keyFile, keyPass, msigWalletAddress)
 		case "stake":
 			deployStake(keyFile, keyPass, msigWalletAddress)
+		case "rtceth":
+			deployRTCETH(keyFile, keyPass, msigWalletAddress)
 		default:
 			log.Fatal("invalid contract type")
 		}
 	default:
 		log.Fatal("invalid run mode")
 	}
+}
+
+func deployRTCETH(keyFile, keyPass, multisig string) error {
+	fileBytes, err := ioutil.ReadFile(keyFile)
+	if err != nil {
+		return err
+	}
+	pk, err := keystore.DecryptKey(fileBytes, keyPass)
+	if err != nil {
+		return err
+	}
+	auth := bind.NewKeyedTransactor(pk.PrivateKey)
+	client, err := ethclient.Dial(endpoint)
+	if err != nil {
+		fmt.Println("error dialing ethclient ", err)
+		return err
+	}
+	fmt.Println("deploying sale contract")
+	saleAddr, tx, sale, err := bindings.DeployRTCETH(auth, client)
+	if err != nil {
+		fmt.Println("error deploying RTCETH ", err)
+		return err
+	}
+
+	_, err = bind.WaitDeployed(context.Background(), client, tx)
+	if err != nil {
+		fmt.Println("error waiting for deployment ", err)
+		return err
+	}
+	fmt.Println("transferring admin rights to multisig")
+	// transfer admin rights
+	tx, err = sale.SetAdmin(auth, common.HexToAddress(multisig))
+	if err != nil {
+		fmt.Println("failed to set admin rights ", err)
+		return err
+	}
+	rcpt, err := bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		fmt.Println("failed to wait for transaction to be miend ", err)
+		return err
+	}
+	if len(rcpt.Logs) == 0 {
+		fmt.Println("failed to transfer admin rights logs emitted")
+		return errors.New("failed to transfer admin rightss no logs emitted")
+	}
+	fmt.Println("transferring ownership to multisig")
+	// transfer ownership
+	tx, err = sale.TransferOwnership(auth, common.HexToAddress(multisig))
+	if err != nil {
+		fmt.Println("failed to transfer ownership ", err)
+		return err
+	}
+	rcpt, err = bind.WaitMined(context.Background(), client, tx)
+	if err != nil {
+		fmt.Println("failed to wait for transaction to be miend ", err)
+		return err
+	}
+	if len(rcpt.Logs) == 0 {
+		fmt.Println("failed to transfer ownership logs emitted")
+		return errors.New("failed to transfer ownership no logs emitted")
+	}
+	fmt.Println("RTC-ETH Contract Address ", saleAddr.String())
+	return nil
 }
 
 func deployStake(keyFile, keyPass, multisig string) error {
