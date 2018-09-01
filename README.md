@@ -6,6 +6,10 @@ For code audit reports check the [Documents Directory](https://github.com/RTrade
 
 ## Deployed Contracts
 
+### Mainnet
+
+* [MultiSignatureWallet](https://etherscan.io/address/0x41fb0e5bd1dfe3b61e9a09ebd4105c2e35b0bcbd)
+
 ### Rinkeby
 
 * [RTCoin](https://rinkeby.etherscan.io/address/0x675b45856257ceef650100c7ca1b2e8c6ff42e7c#code)
