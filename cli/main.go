@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/big"
 	"os"
 
 	"github.com/RTradeLtd/RT-Contracts/bindings"
@@ -18,7 +19,7 @@ import (
 var endpoint = ""
 
 func main() {
-	epoint := os.Getenv("RINKEBY_INFURA")
+	epoint := os.Getenv("MAINNET_INFURA")
 	if epoint == "" {
 		endpoint = "http://127.0.0.1:8545"
 	} else {
@@ -67,6 +68,7 @@ func deployMergedMiner(keyFile, keyPass, multisig string) error {
 		return err
 	}
 	auth := bind.NewKeyedTransactor(pk.PrivateKey)
+	auth.GasPrice = big.NewInt(25000000000)
 	client, err := ethclient.Dial(endpoint)
 	if err != nil {
 		fmt.Println("error dialing ethclient ", err)
@@ -97,6 +99,7 @@ func deployVesting(keyFile, keyPass, multisig string) error {
 		return err
 	}
 	auth := bind.NewKeyedTransactor(pk.PrivateKey)
+	auth.GasPrice = big.NewInt(25000000000)
 	client, err := ethclient.Dial(endpoint)
 	if err != nil {
 		fmt.Println("error dialing ethclient ", err)
@@ -128,6 +131,7 @@ func deployRTCETH(keyFile, keyPass, multisig string) error {
 		return err
 	}
 	auth := bind.NewKeyedTransactor(pk.PrivateKey)
+	auth.GasPrice = big.NewInt(25000000000)
 	client, err := ethclient.Dial(endpoint)
 	if err != nil {
 		fmt.Println("error dialing ethclient ", err)
@@ -191,6 +195,7 @@ func deployStake(keyFile, keyPass, multisig string) error {
 		return err
 	}
 	auth := bind.NewKeyedTransactor(pk.PrivateKey)
+	auth.GasPrice = big.NewInt(25000000000)
 	client, err := ethclient.Dial(endpoint)
 	if err != nil {
 		fmt.Println("error dialing ethclient ", err)
@@ -223,6 +228,7 @@ func deployRTC(keyFile, keyPass, multisigWalletAddress string) error {
 		return err
 	}
 	auth := bind.NewKeyedTransactor(pk.PrivateKey)
+	auth.GasPrice = big.NewInt(25000000000)
 	client, err := ethclient.Dial(endpoint)
 	if err != nil {
 		fmt.Println("error dialing ethclient ", err)
