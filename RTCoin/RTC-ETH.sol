@@ -13,7 +13,7 @@ contract RTCETH is Administration {
     using SafeMath for uint256;
 
     // we mark as constant private to save gas
-    address constant private TOKENADDRESS = 0x675b45856257CeEf650100C7Ca1b2E8c6FF42e7C;
+    address constant private TOKENADDRESS = 0xecc043b92834c1ebDE65F2181B59597a6588D616;
     RTCoinInterface constant public RTI = RTCoinInterface(TOKENADDRESS);
     string constant public VERSION = "production";
 

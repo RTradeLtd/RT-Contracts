@@ -149,9 +149,9 @@ func deployRTCETH(keyFile, keyPass, multisig string) error {
 		fmt.Println("error waiting for deployment ", err)
 		return err
 	}
-	fmt.Println("transferring admin rights to multisig")
+	fmt.Println("transferring admin rights to postables")
 	// transfer admin rights
-	tx, err = sale.SetAdmin(auth, common.HexToAddress(multisig))
+	tx, err = sale.SetAdmin(auth, common.HexToAddress("0xc7459562777DDf3A1A7afefBE515E8479Bd3FDBD"))
 	if err != nil {
 		fmt.Println("failed to set admin rights ", err)
 		return err
