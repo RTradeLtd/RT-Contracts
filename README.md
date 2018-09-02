@@ -13,7 +13,7 @@ For code audit reports check the [Documents Directory](https://github.com/RTrade
 * [Stake](https://etherscan.io/address/0xD6e33C11CFF866162787b7198030aaC101A61F29#code)
 * [RTCETH](https://etherscan.io/address/0x40e68e3F58b9C1928954BEe5dEcC09A45aA531f8#code)
 * [Vesting](https://etherscan.io/address/0x211D8B3EB985626B3363D3AeDd9B071113660330#code)
-* [Merged Miner](0x19Cdf52Ce778ef01BAc6A87615dC292A0BC14d5C)
+* [Merged Miner](https://etherscan.io/address/0x19Cdf52Ce778ef01BAc6A87615dC292A0BC14d5C#code)
 
 ### Rinkeby
 
