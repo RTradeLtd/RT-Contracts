@@ -17,11 +17,12 @@ contract MergedMinerValidator {
     // 0.3
     uint256 constant public BLOCKREWARD = 300000000000000000;
     string  constant public VERSION = "production";
-
+    address constant public TOKENADDRESS = 0xecc043b92834c1ebDE65F2181B59597a6588D616;
+    RTCoinInterface constant public RTI = RTCoinInterface(TOKENADDRESS);
+    
     address public tokenAddress;
     address public admin;
     uint256 public lastBlockSet;
-    RTCoinInterface public rtI;
 
     enum BlockStateEnum { nil, submitted, claimed }
 
@@ -53,7 +54,7 @@ contract MergedMinerValidator {
     }
 
     modifier canMint() {
-        require(rtI.mergedMinerValidatorAddress() == address(this), "merged miner contract on rtc token must be set to this contract");
+        require(RTI.mergedMinerValidatorAddress() == address(this), "merged miner contract on rtc token must be set to this contract");
         _;
     }
 
@@ -98,7 +99,7 @@ contract MergedMinerValidator {
         blocks[block.number] = b;
         // lets not do a storage lookup so we can avoid SSLOAD gas usage
         emit BlockInformationSubmitted(block.coinbase, block.number, msg.sender);
-        require(rtI.mint(msg.sender, SUBMISSIONREWARD), "failed to transfer reward to block submitter");
+        require(RTI.mint(msg.sender, SUBMISSIONREWARD), "failed to transfer reward to block submitter");
         return true;
     }
     
@@ -131,16 +132,7 @@ contract MergedMinerValidator {
         emit MergedMinedRewardClaimed(msg.sender, _blockNumbers, totalMint);
         // make sure more than 0 is being claimed
         require(totalMint > 0, "total coins to mint must be greater than 0");
-        require(rtI.mint(msg.sender, totalMint), "unable to mint tokens");
-        return true;
-    }
-
-    /** @notice Used to set the RTC token address and interface
-        * @param _tokenAddress This is the address of the RTC token contract
-     */
-    function setRTI(address _tokenAddress) public onlyAdmin tokenAddressNotSet returns (bool) {
-        tokenAddress = _tokenAddress;
-        rtI = RTCoinInterface(_tokenAddress);
+        require(RTI.mint(msg.sender, totalMint), "unable to mint tokens");
         return true;
     }
 
