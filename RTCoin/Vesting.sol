@@ -12,7 +12,7 @@ contract Vesting {
     using SafeMath for uint256;
 
     // these will need to be changed prior to deployment
-    address constant public TOKENADDRESS = 0x675b45856257CeEf650100C7Ca1b2E8c6FF42e7C;
+    address constant public TOKENADDRESS = 0xecc043b92834c1ebDE65F2181B59597a6588D616;
     RTCoinInterface constant public RTI = RTCoinInterface(TOKENADDRESS);
     string constant public VERSION = "production";
 
