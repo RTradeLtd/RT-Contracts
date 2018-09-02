@@ -52,6 +52,8 @@ func main() {
 			deployMergedMiner(keyFile, keyPass, msigWalletAddress)
 		case "rtctest":
 			deployRTCTest(keyFile, keyPass)
+		case "mergedminertest":
+			deployMergedMinerTest(keyFile, keyPass)
 		default:
 			log.Fatal("invalid contract type")
 		}
@@ -369,5 +371,36 @@ func deployRTCTest(keyFile, keyPass string) error {
 	}
 	fmt.Println("RTC token deployed and setup")
 	fmt.Println("Token address: ", rtcAddress.String())
+	return nil
+}
+
+func deployMergedMinerTest(keyFile, keyPass string) error {
+	fileBytes, err := ioutil.ReadFile(keyFile)
+	if err != nil {
+		return err
+	}
+	pk, err := keystore.DecryptKey(fileBytes, keyPass)
+	if err != nil {
+		return err
+	}
+	auth := bind.NewKeyedTransactor(pk.PrivateKey)
+	auth.GasPrice = big.NewInt(25000000000)
+	client, err := ethclient.Dial(endpoint)
+	if err != nil {
+		fmt.Println("error dialing ethclient ", err)
+		return err
+	}
+	minerAddress, tx, _, err := bindings.DeployMergedMinerValidator(auth, client, auth.From)
+	if err != nil {
+		fmt.Println("error deploying merged miner validator ", err)
+		return err
+	}
+	_, err = bind.WaitDeployed(context.Background(), client, tx)
+	if err != nil {
+		fmt.Println("failed to wait for merged miner validator to be deployed ", err)
+		return err
+	}
+
+	fmt.Println("Merged Miner Validator Address ", minerAddress.String())
 	return nil
 }

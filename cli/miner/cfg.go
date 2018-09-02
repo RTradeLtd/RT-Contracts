@@ -5,6 +5,11 @@ import (
 	"io/ioutil"
 )
 
+const (
+	// TestMergedMinerContractAddress is the address of our rinkeby test merged mienr contract
+	TestMergedMinerContractAddress = "0x3Ef19bE0613de519Fc20fD953285f300C1Afd7C2"
+)
+
 // Config holds the configuration for our miner
 type Config struct {
 	Endpoint        string `json:"endpoint"`
