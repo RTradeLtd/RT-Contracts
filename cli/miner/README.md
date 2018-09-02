@@ -1,6 +1,8 @@
 # Miner
 
-This is a simple comand line program designed to "mine" on the Merged Miner Validator smart contract. By this, we mean that it will repeatedly submit transactions to the smart contract submitting information. It is currently a WIP, and bugs should be expected. As such, please use at your own risk.
+This is a simple comand line program designed to "mine" on the Merged Miner Validator smart contract. By this, we mean that it will repeatedly submit transactions to the smart contract submitting information. It is currently a WIP, and bugs should be expected. As such, please use at your own risk. There is no implied warranty for this piece of software, and any loss of funds that occur as such is the responsibility of the person running this program. If you disagree with any of this, then don't run this program.
+
+Currently only keystore files, like those generated via MEW, or Mist are supported.
 
 ## Setup Instructions
 
