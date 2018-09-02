@@ -4,6 +4,8 @@ In this repository you'll find all of the smart contracts that we use at RTrade 
 
 For code audit reports check the [Documents Directory](https://github.com/RTradeLtd/RT-Contracts/tree/master/Documents/audits)
 
+For our official launch/deployment announcment see this [blog post](https://steemit.com/cryptocurrency/@rtrade/rtrade-technologies-ltd-officially-announces-the-mainnet-launch-of-rtcoin)
+
 ## Deployed Contracts
 
 ### Mainnet
@@ -100,9 +102,11 @@ To run these tests, simply update the `RTCoin/stake/main.go` file to include you
 ## Merged Mining
 
 ---
-Currently in development, a Merged Mining contract will allow anyone who mines a block on the Ethereum mainnet, to submit the block headers from the block which they mined to our Merged Mining contract, and be awarded freshly minted RTC! Currently the merged mining contract requires that each block, the block hash, and the coinbase (miner) are stored in a smart contract, allowing the miner to claim their minted tokens whenever. 
+Currently in development, a Merged Mining contract will allow anyone who mines a block on the Ethereum mainnet, to submit the block headers from the block which they mined to our Merged Mining contract, and be awarded freshly minted RTC! Currently the merged mining contract requires that each block, the block hash, and the coinbase (miner) are stored in a smart contract, allowing the miner to claim their minted tokens whenever.
 
 The ability to submit block hash and coinbase information is incentivized and can also mint RTC. The first person to submit the blockhash and coinbase information for a given block will receive a small amount of RTC, directly minted to their address. We incentivize storing this information as the user has to pay for the gas costs to invoke the transaction.
+
+There is an experimental command line client that can be used to "mine" the `submitBlock` function. Please see the `cli/miner` directory.
 
 ### Objectives - Merged Mining
 
