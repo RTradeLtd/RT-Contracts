@@ -17,70 +17,71 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-var endpoint = "http://127.0.0.1:8545"
+// Miner is our miner service
+type Miner struct {
+	Client   *ethclient.Client
+	Auth     *bind.TransactOpts
+	Contract *bindings.MergedMinerValidator
+}
 
 func main() {
-	epoint := os.Getenv("MAINNET_INFURA")
-	if epoint == "" {
-		endpoint = "http://127.0.0.1:8545"
+	cfgPath := os.Getenv("CONFIG_PATH")
+	if cfgPath == "" {
+		log.Fatal("CONFIG_PATH environment variable is empty")
 	}
-	contractAddress := os.Getenv("CONTRACT_ADDRESS")
-	if contractAddress == "" {
-		log.Fatal("CONTRACT_ADDRESS environment variable is empty")
-	}
-	keyFile := os.Getenv("KEY_FILE")
-	if keyFile == "" {
-		log.Fatal("KEY_FILE environment variable is empty")
-	}
-	keyPass := os.Getenv("KEY_PASS")
-	if keyPass == "" {
-		log.Fatal("KEY_PASS environment variable is empty")
-	}
-
-	fileBytes, err := ioutil.ReadFile(keyFile)
+	cfg, err := LoadConfig(cfgPath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	pk, err := keystore.DecryptKey(fileBytes, keyPass)
+	client, err := ethclient.Dial(cfg.Endpoint)
 	if err != nil {
 		log.Fatal(err)
 	}
-	client, err := ethclient.Dial(endpoint)
+	fileBytes, err := ioutil.ReadFile(cfg.KeyFilePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	pk, err := keystore.DecryptKey(fileBytes, cfg.KeyFilePass)
 	if err != nil {
 		log.Fatal(err)
 	}
 	auth := bind.NewKeyedTransactor(pk.PrivateKey)
-
-	miner, err := bindings.NewMergedMinerValidator(common.HexToAddress(contractAddress), client)
+	contract, err := bindings.NewMergedMinerValidator(common.HexToAddress(cfg.ContractAddress), client)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = mine(auth, client, miner)
+	miner := Miner{
+		Client:   client,
+		Auth:     auth,
+		Contract: contract,
+	}
+	err = miner.Mine()
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func mine(auth *bind.TransactOpts, client *ethclient.Client, miner *bindings.MergedMinerValidator) error {
+// Mine is used to start our miner process
+func (m *Miner) Mine() error {
 	rtcAwarded := float64(0)
+	var err error
+	var gasPrice *big.Int
 	for {
-		var err error
-		var gasPrice *big.Int
-		gasPrice, err = client.SuggestGasPrice(context.Background())
+		gasPrice, err = m.Client.SuggestGasPrice(context.Background())
 		if err != nil {
 			fmt.Println("failed to get gas price due ", err.Error())
 			fmt.Println("using default gas price of 25Gwei")
 			gasPrice = big.NewInt(25000000000)
 		}
-		auth.GasPrice = gasPrice
-		tx, err := miner.SubmitBlock(auth)
+		m.Auth.GasPrice = gasPrice
+		tx, err := m.Contract.SubmitBlock(m.Auth)
 		if err != nil {
 			fmt.Println("failed to submit transaction to blockchain ", err.Error())
 			fmt.Println("sleeping for 30 seconds")
 			time.Sleep(time.Second * 30)
 			continue
 		}
-		rcpt, err := bind.WaitMined(context.Background(), client, tx)
+		rcpt, err := bind.WaitMined(context.Background(), m.Client, tx)
 		if err != nil {
 			fmt.Println("failed to wait for transaction to be mined ", err.Error())
 			fmt.Println("sleeping for 30 seconds")
