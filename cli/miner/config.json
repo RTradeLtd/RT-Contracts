@@ -1,0 +1,6 @@
+{
+ "endpoint": "https://rinkeby.infura.io/v3/e7e7c2534e33484f865ed9f6a7e77fca",
+ "key_file_path": "/home/solidity/DevChain/node1/UTC--2018-07-10T00-50-38.032362728Z--7e4a2359c745a982a54653128085eac69e446de1",
+ "key_file_pass": "password123",
+ "contract_address": "0x3Ef19bE0613de519Fc20fD953285f300C1Afd7C2"
+}

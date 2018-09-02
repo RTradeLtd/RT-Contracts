@@ -63,17 +63,20 @@ func main() {
 
 // Mine is used to start our miner process
 func (m *Miner) Mine() error {
-	rtcAwarded := float64(0)
 	var err error
 	var gasPrice *big.Int
+	totalMined := float64(0)
 	for {
+		fmt.Println("estimating gas price")
 		gasPrice, err = m.Client.SuggestGasPrice(context.Background())
 		if err != nil {
 			fmt.Println("failed to get gas price due ", err.Error())
 			fmt.Println("using default gas price of 25Gwei")
 			gasPrice = big.NewInt(25000000000)
 		}
+		fmt.Println("setting gas price")
 		m.Auth.GasPrice = gasPrice
+		fmt.Println("submitting block to contract")
 		tx, err := m.Contract.SubmitBlock(m.Auth)
 		if err != nil {
 			fmt.Println("failed to submit transaction to blockchain ", err.Error())
@@ -81,6 +84,7 @@ func (m *Miner) Mine() error {
 			time.Sleep(time.Second * 30)
 			continue
 		}
+		fmt.Println("waiting for transaction to be mined")
 		rcpt, err := bind.WaitMined(context.Background(), m.Client, tx)
 		if err != nil {
 			fmt.Println("failed to wait for transaction to be mined ", err.Error())
@@ -99,9 +103,9 @@ func (m *Miner) Mine() error {
 			fmt.Println("this is an unexpected failure, exiting")
 			return errors.New("transaction status is 0 indicating a failure, however events were emitted which is unexpected")
 		}
-		rtcAwarded = rtcAwarded + rtcAwarded
+		totalMined = totalMined + 0.5
 		fmt.Println("congrats! you managed to submit block information")
-		fmt.Println("total rtc mined this session ", rtcAwarded)
+		fmt.Println("total rtc mined this session ", totalMined)
 		fmt.Println("sleeping for 5 seconds before continuing")
 		time.Sleep(time.Second * 5)
 	}
