@@ -4,7 +4,11 @@ This is a simple comand line program designed to "mine" on the Merged Miner Vali
 
 Currently only keystore files, like those generated via MEW, or Mist are supported.
 
-## Setup Instructions
+## "Automated" Setup
+
+1) Run the `setup.sh` script, enter details as needed
+
+### Manual Setup
 
 1) Update `config.json` with an appropriate endpoint to connect to the ethereum blockchain with
 2) Update `config.json` with the absolute path to your keystore key file
