@@ -63,17 +63,9 @@ func main() {
 
 // Mine is used to start our miner process
 func (m *Miner) Mine() error {
-	var err error
-	var gasPrice *big.Int
 	totalMined := float64(0)
 	for {
-		fmt.Println("estimating gas price")
-		gasPrice, err = m.Client.SuggestGasPrice(context.Background())
-		if err != nil {
-			fmt.Println("failed to get gas price due ", err.Error())
-			fmt.Println("using default gas price of 25Gwei")
-			gasPrice = big.NewInt(25000000000)
-		}
+		gasPrice := big.NewInt(25000000000)
 		fmt.Println("setting gas price")
 		m.Auth.GasPrice = gasPrice
 		fmt.Println("submitting block to contract")
