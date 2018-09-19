@@ -1,6 +1,4 @@
 # RT-Contracts
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FRTradeLtd%2FRT-Contracts.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FRTradeLtd%2FRT-Contracts?ref=badge_shield)
-
 
 In this repository you'll find all of the smart contracts that we use at RTrade for our various services. Along with them, you'll find a detailed summary of our smart contract infrastructure for RTC in this readme.
 
@@ -176,7 +174,3 @@ Within `MultiSig/MultiSigWalletModded.sol` you can find a modified version of Gn
 ---
 Thanks to Figs999 for the EventStorage.sol contract which is serving as a basis for block header parsing.
     > [EventStorage.sol](https://github.com/figs999/Ethereum/blob/master/EventStorage.sol)
-
-
-## License
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FRTradeLtd%2FRT-Contracts.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FRTradeLtd%2FRT-Contracts?ref=badge_large)
