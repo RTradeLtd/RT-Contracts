@@ -24,6 +24,7 @@ For our official launch/deployment announcment see this [blog post](https://stee
 * [RTCETH](https://rinkeby.etherscan.io/address/0xC2a87A17b28316469152e0c2892D20095369bd97#code)
 * [Vesting](https://rinkeby.etherscan.io/address/0x8B8784c083b90AA0D699014d750748B3B2c1aD64#code)
 * [Merged Miner](https://rinkeby.etherscan.io/address/0x64d577fd98B000871ae99Fb1d9C1C32c3018dC10#code)
+* [Payment Contract](https://rinkeby.etherscan.io/address/0x0fc7c1479ab824b4285406caeb8bc4fa72631b5c)
 
 ## RTCoin
 

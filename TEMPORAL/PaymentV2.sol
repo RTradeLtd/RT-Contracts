@@ -15,11 +15,11 @@ contract Payments {
     // these addresses will need to be changed before deployment, and validated after deployment
     // we hardcode them for security reasons to avoid any possible risk of compromised accounts being able to change anything on this contract.
     // in the event that one of the addresses is compromised, the contract will be self destructed
-    address constant private SIGNER = 0xC6C35f43fDD71f86a2D8D4e3cA1Ce32564c38bd9;
-    address constant private TOKENADDRESS = 0xC6C35f43fDD71f86a2D8D4e3cA1Ce32564c38bd9;
-    address constant private HOTWALLET = 0xC6C35f43fDD71f86a2D8D4e3cA1Ce32564c38bd9;
+    address constant private SIGNER = 0xB2006881d0Eb1C6d45A79c065E77fa1b27642277;
+    address constant private TOKENADDRESS = 0x675b45856257CeEf650100C7Ca1b2E8c6FF42e7C;
+    address constant private HOTWALLET = 0xB2006881d0Eb1C6d45A79c065E77fa1b27642277;
     RTCoinInterface constant private RTI = RTCoinInterface(TOKENADDRESS);
-    string constant public VERSION = "production";
+    string constant public VERSION = "testing";
 
     address public admin;
 
