@@ -16,6 +16,7 @@ For our official launch/deployment announcment see this [blog post](https://stee
 * [RTCETH](https://etherscan.io/address/0x40e68e3F58b9C1928954BEe5dEcC09A45aA531f8#code)
 * [Vesting](https://etherscan.io/address/0x211D8B3EB985626B3363D3AeDd9B071113660330#code)
 * [Merged Miner](https://etherscan.io/address/0x19Cdf52Ce778ef01BAc6A87615dC292A0BC14d5C#code)
+* [Payments](https://etherscan.io/address/0x00c8162c86a977edc10c641636bdff1c59327983#code)
 
 ### Rinkeby
 
