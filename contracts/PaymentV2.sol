@@ -1,8 +1,8 @@
 pragma solidity 0.4.24;
 pragma experimental "v0.5.0";
 
-import "../Interfaces/RTCoinInterface.sol";
-import "../Math/SafeMath.sol";
+import "./Interfaces/RTCoinInterface.sol";
+import "./Math/SafeMath.sol";
 
 /// @title TEMPORAL Payment Contract
 /// @author Postables, RTrade Technologies Ltd
@@ -15,11 +15,11 @@ contract Payments {
     // these addresses will need to be changed before deployment, and validated after deployment
     // we hardcode them for security reasons to avoid any possible risk of compromised accounts being able to change anything on this contract.
     // in the event that one of the addresses is compromised, the contract will be self destructed
-    address constant private SIGNER = 0xC6C35f43fDD71f86a2D8D4e3cA1Ce32564c38bd9;
-    address constant private TOKENADDRESS = 0xC6C35f43fDD71f86a2D8D4e3cA1Ce32564c38bd9;
-    address constant private HOTWALLET = 0xC6C35f43fDD71f86a2D8D4e3cA1Ce32564c38bd9;
+    address constant private SIGNER = 0x7E4A2359c745A982a54653128085eAC69E446DE1;
+    address constant private TOKENADDRESS = 0x675b45856257CeEf650100C7Ca1b2E8c6FF42e7C;
+    address constant private HOTWALLET = 0x7E4A2359c745A982a54653128085eAC69E446DE1;
     RTCoinInterface constant private RTI = RTCoinInterface(TOKENADDRESS);
-    string constant public VERSION = "production";
+    string constant public VERSION = "development";
 
     address public admin;
 
